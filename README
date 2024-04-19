@@ -25,3 +25,12 @@ The matching class has a huge amount of configuration options
     at https://github.com/ssrothman/Cmssw-UserCode/blob/EECs_106x/Matching/python/GenMatchProducer_cfi.py
 
 Presumably this documentation is still gonna be super insufficient, so lets talk about things and flesh it out as you have issues
+
+A few comments on places that things will have to be changed:
+    for the pp measurement we're using pT as the energy coordinate in the EECs, 
+        but presumably for e+e- we'll want to use actual total energy
+        so presumably we will have to go into the EEC code to change this
+    also, for the pp measurement we're using (eta, phi) coordinates, and angular distances are all in Delta R (ie L2 norm in (eta, phi) space)
+        probably for e+e- everything will be in terms of actual angle. 
+        we will have to change how the angular windows in the matching work
+        and also how the EEC bins are defined
