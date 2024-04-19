@@ -7,6 +7,8 @@ file structure:
     SRothman/arma...: copy of armadillo library source
     SRothman/SimonTools: submodule with some utility functions
 
+Some example useage is in main.cc
+
 Dependencies:
    armadillo: does some linear algebra stuff. 
               the files are included in the repo, 
@@ -17,3 +19,9 @@ Dependencies:
               will need to modify path in the makefile
     boost: needs to be reasonably modern
               can install through conda or whatever
+
+The matching class has a huge amount of configuration options
+    Details for these can be found in the python config for the CMSSW build
+    at https://github.com/ssrothman/Cmssw-UserCode/blob/EECs_106x/Matching/python/GenMatchProducer_cfi.py
+
+Presumably this documentation is still gonna be super insufficient, so lets talk about things and flesh it out as you have issues

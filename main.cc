@@ -5,6 +5,8 @@
 
 #include "SRothman/Matching/src/matcher.h"
 
+#include "SRothman/EECs/src/fast.h"
+
 void setup_example_genjet(jet& result, const jet& recojet){
     static std::default_random_engine rng(std::chrono::system_clock::now().time_since_epoch().count());
     static std::uniform_real_distribution<double> rand(0,1);
@@ -124,7 +126,6 @@ int main(){
 
     //setup matcher
     //there's a ton of configuration values here
-
     matcher match(recoJet, genJet,
 
                   0.05,
@@ -212,7 +213,58 @@ int main(){
 
                   100);
     match.minimize();
-                
+
+    //matching matrix
+    //can be either ptrans() -> includes pT smearing
+    //           or rawmat() -> ignores pT smearing
+    arma::mat matchMatrix = match.ptrans();
+
+    std::vector<bool> isPU(recoJet.nPart, true);
+    std::vector<bool> isUmmatched(genJet.nPart, true);
+    for(unsigned iPReco=0; iPReco<recoJet.nPart; ++iPReco){
+        for(unsigned iPGen=0; iPGen<genJet.nPart; ++iPGen){
+            if(matchMatrix(iPReco, iPGen) > 0){
+                isPU[iPReco] = false;
+                isUmmatched[iPGen] = false;
+            }
+        }
+    }
+
+    std::vector<double> RLedges({1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 3e-1, 1.0});
+    auto RLax = std::make_shared<boost::histogram::axis::variable<double>>(RLedges);
+    int maxOrder = 6;
+    fastEEC::normType norm = fastEEC::normType::RAWPT;
+
+    fastEEC::result<double> EEC_reco;
+    fastEEC::fastEEC<double, true, false, false, false, false>(
+        EEC_reco,
+        recoJet, RLax, maxOrder, norm,
+        RLax, RLax, RLax,//these are a bunch of other axes
+                         //for the resolved correlators
+                         //which we aren't calculating
+                         //but you still have to pass something
+                         //so whatever
+        RLax, RLax, 
+        RLax, RLax, 
+        RLax, RLax, 
+        0.0,
+        &isPU
+    );
+
+    fastEEC::result<double> EEC_gen;
+    fastEEC::fastEEC<double, true, true, false, false, false, false>(
+        EEC_gen,
+        genJet, RLax, maxOrder, norm,
+        RLax, RLax, RLax,
+        RLax, RLax,
+        RLax, RLax,
+        RLax, RLax,
+        0.0,
+        &isUmmatched, &recoJet, &matchMatrix
+    );
+
+    //binned EEC results are in EEC_reco and EEC_gen
+    //and also the transfer matrix entries are in EEC_gen
 
     return 0;
 }
