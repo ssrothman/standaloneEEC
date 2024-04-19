@@ -1,0 +1,19 @@
+file structure is a bit funky to align with the way things look inside CMSSW.
+just roll with it
+
+file structure:
+    SRothman/Matching: submodule with particle matching code
+    SRothman/EECs: submodule with EEC computation code
+    SRothman/arma...: copy of armadillo library source
+    SRothman/SimonTools: submodule with some utility functions
+
+Dependencies:
+   armadillo: does some linear algebra stuff. 
+              the files are included in the repo, 
+              so you don't need to do anything.
+              also, library is header-only, so no need to compile
+   root: needed for the Minuit2 minimizer. 
+              can install through conda or whatever
+              will need to modify path in the makefile
+    boost: needs to be reasonably modern
+              can install through conda or whatever
