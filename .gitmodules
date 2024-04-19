@@ -1,0 +1,12 @@
+[submodule "SRothman/EECs/src"]
+	path = SRothman/EECs/src
+	url = git@github.com:ssrothman/EECs.git
+[submodule "SRothman/Matching/src"]
+	path = SRothman/Matching/src
+	url = git@github.com:ssrothman/particle_match_fit.git
+[submodule "SimonTools/src"]
+	path = SimonTools/src
+	url = git@github.com:ssrothman/simon_util_cpp.git
+[submodule "SRothman/SimonTools/src"]
+	path = SRothman/SimonTools/src
+	url = git@github.com:ssrothman/simon_util_cpp.git
