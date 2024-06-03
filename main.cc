@@ -38,8 +38,8 @@ void setup_example_recojet(jet& recoJet){
 }
 
 void make_random_jet(jet& recoJet, unsigned nPart){
-    static std::default_random_engine gen;
-    static std::normal_distribution<double> normal(0.0, 0.2);
+    static std::default_random_engine gen(12);
+    static std::normal_distribution<double> normal(0.0, 0.4);
 
     double totalPt=0;
     double weightedEta=0;
@@ -106,10 +106,14 @@ int main(){
 
 
     for(int REP=0; REP<3; ++REP){
+        //printf("\n\n\n\n\n\n");
         //setup example reco jet
         jet recoJet;
         //setup_example_recojet(recoJet);
         make_random_jet(recoJet, 50);
+        //for(const auto& part : recoJet.particles){
+        //    printf("%0.3f, %0.3f, %0.3f\n", part.pt, part.eta, part.phi);
+        //}
         //printf("Reco Jet: (%0.3f, %0.3f, %0.3f)\n", 
         //        recoJet.pt, recoJet.eta, recoJet.phi);
         //printf("PARTICLES:\n");
@@ -118,7 +122,7 @@ int main(){
         //}
 
         fastEEC::result_t<double> EEC_reco;
-        fastEEC::run<double, false, false, true, true, false, 6>(
+        fastEEC::run<double, false, false, true, true, false, 4>(
             EEC_reco,
             recoJet, RLax, norm,
             RLax_coarse, xi_ax, phi_ax,
