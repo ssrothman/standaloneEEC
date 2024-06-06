@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <iomanip>
+#include <iostream>
 
 #include "SRothman/SimonTools/src/jets.h"
 #include "SRothman/SimonTools/src/printPart.h"
@@ -6,6 +8,8 @@
 #include "SRothman/Matching/src/matcher.h"
 
 #include "SRothman/EECs/src/run.h"
+
+#include "SRothman/SimonTools/src/recursive_reduce.h"
 
 #include "testcoords.h"
 
@@ -84,16 +88,26 @@ int main(){
     std::vector<double> phi_edges({1e-3, 0.5, 1.0});
     auto phi_ax = std::make_shared<boost::histogram::axis::variable<double>>(phi_edges);
 
-    std::vector<double> r_dipole_edges({0.0, 0.5, 1.0});
+    std::vector<double> r_dipole_edges({0.0, 0.05, 0.1, 0.15, 0.2,
+                                        0.25, 0.3, 0.35, 0.4, 0.45,
+                                        0.5, 0.55, 0.6, 0.65, 0.7,
+                                        0.75, 0.8, 0.85, 0.9, 0.95,
+                                        1.0});
     auto r_dipole_ax = std::make_shared<boost::histogram::axis::variable<double>>(r_dipole_edges);
 
-    std::vector<double> ct_dist_edges({0.0, 0.5, 1.0});
-    auto ct_dist_ax = std::make_shared<boost::histogram::axis::variable<double>>(ct_dist_edges);
+    std::vector<double> ct_dipole_edges({0.0, M_PI/32, 2*M_PI/32, 3*M_PI/32,
+                                         4*M_PI/32, 5*M_PI/32, 6*M_PI/32,
+                                         7*M_PI/32, 8*M_PI/32, 9*M_PI/32,
+                                         10*M_PI/32, 11*M_PI/32, 12*M_PI/32,
+                                         13*M_PI/32, 14*M_PI/32, 15*M_PI/32,
+                                         16*M_PI/32});
+                                
+    auto ct_dipole_ax = std::make_shared<boost::histogram::axis::variable<double>>(ct_dipole_edges);
 
-    std::vector<double> r_tee_edges({0.0, 0.5, 1.0});
+    std::vector<double> r_tee_edges = r_dipole_edges;
     auto r_tee_ax = std::make_shared<boost::histogram::axis::variable<double>>(r_tee_edges);
 
-    std::vector<double> ct_tee_edges({0.0, 0.5, 1.0});
+    std::vector<double> ct_tee_edges = ct_dipole_edges;
     auto ct_tee_ax = std::make_shared<boost::histogram::axis::variable<double>>(ct_tee_edges);
 
     std::vector<double> r_tri_edges({0.0, 0.5, 1.0});
@@ -105,7 +119,8 @@ int main(){
     fastEEC::normType norm = fastEEC::normType::RAWPT;
 
 
-    for(int REP=0; REP<3; ++REP){
+    std::shared_ptr<fastEEC::result_t<double>> EEC_accu = nullptr;
+    for(int REP=0; REP<1000; ++REP){
         //printf("\n\n\n\n\n\n");
         //setup example reco jet
         jet recoJet;
@@ -121,17 +136,39 @@ int main(){
         //    printPart(part);
         //}
 
-        fastEEC::result_t<double> EEC_reco;
-        fastEEC::run<double, false, false, true, true, false, 4>(
-            EEC_reco,
+        auto EEC_reco = std::make_shared<fastEEC::result_t<double>>();
+
+        fastEEC::runSuperSpecific<double>(
+            *EEC_reco,
             recoJet, RLax, norm,
+            4, fastEEC::DORES4 | fastEEC::DORES3,
             RLax_coarse, xi_ax, phi_ax,
-            r_dipole_ax, ct_dist_ax,
+            r_dipole_ax, ct_dipole_ax,
             r_tee_ax, ct_tee_ax,
             r_tri_ax, ct_tri_ax,
-            0.1
+            0.005
         );
+
+        if (REP==0){
+            EEC_accu = EEC_reco;
+        } else {
+            *EEC_accu += *EEC_reco;
+        }
+
+        printf("Ran %u:\n", REP);
+        printf("\tshape 0: %g\n", recursive_reduce((*(*EEC_reco).resolved4_shapes)[0], 0.0));
+        printf("\tshape 1: %g\n", recursive_reduce((*(*EEC_reco).resolved4_shapes)[1], 0.0));
+        printf("\tshape 2: %g\n", recursive_reduce((*(*EEC_reco).resolved4_shapes)[2], 0.0));
+        printf("\tshape 3: %g\n", recursive_reduce((*(*EEC_reco).resolved4_shapes)[3], 0.0));
     }
 
+    printf("\n\n");
+    printf("Final: %g\n", recursive_reduce((*(*EEC_accu).resolved4_shapes), 0.0));
+    printf("\tshape 0: %g\n", recursive_reduce((*(*EEC_accu).resolved4_shapes)[0], 0.0));
+    printf("\tshape 1: %g\n", recursive_reduce((*(*EEC_accu).resolved4_shapes)[1], 0.0));
+    printf("\tshape 2: %g\n", recursive_reduce((*(*EEC_accu).resolved4_shapes)[2], 0.0));
+    printf("\tshape 3: %g\n", recursive_reduce((*(*EEC_accu).resolved4_shapes)[3], 0.0));
+
+    fastEEC::dumpToFile(*((*EEC_accu).resolved4_shapes), "resolved4_shapes.dat");
     return 0;
 }
