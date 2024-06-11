@@ -2,7 +2,7 @@ MATCHINGSRC=$(wildcard SRothman/Matching/src/*.cc)
 MATCHINGHEADERS=$(wildcard SRothman/Matching/src/*.h)
 MATCHINGOBJ=$(MATCHINGSRC:.cc=.o)
 
-CXXFLAGS=-O3 -std=c++17 -Wall -Wpedantic -Wextra
+CXXFLAGS=-O3 -std=c++17 -Wall -Wpedantic -Wextra -ggdb3
 
 #INCLUDES=-I./ -I/work/submit/srothman/miniforge3/envs/uproot/include
 INCLUDES=-I./ -I/home/simon/miniforge3/include
@@ -24,4 +24,4 @@ libmatching.so: $(MATCHINGOBJ)
 	g++ -shared -o $@ $(MATCHINGOBJ) $(CXXFLAGS)
 
 main: main.cc SRothman/EECs/src/*.h
-	g++ -o $@ $< -lMinuit2 -lblas -llapack $(INCLUDES) $(CXXFLAGS)
+	g++ -o $@ $< -lblas -llapack $(INCLUDES) $(CXXFLAGS)

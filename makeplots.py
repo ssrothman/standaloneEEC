@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
 
 # Load the data
-with open("resolved4_shapes.dat", 'r') as f:
+with open("tee.dat", 'r') as f:
     l0 = f.readline()
     l1 = f.readline()
 
@@ -22,14 +22,10 @@ DATA = np.reshape(DATA, SHAPE)
 
 print(DATA.shape)
 
-titles = ['No shape', 'Dipole', 'Tee', 'Triangle']
-
-nbin_r = SHAPE[2]
-nbin_phi = SHAPE[3]
+nbin_r = SHAPE[1]
+nbin_phi = SHAPE[2]
 edges_r = np.linspace(0, 1, nbin_r - 1)
-edges_r = np.concatenate(([-np.inf], edges_r, [np.inf]))
 edges_phi = np.linspace(0, 0.5*np.pi, nbin_phi - 1)
-edges_phi = np.concatenate(([-np.inf], edges_phi, [np.inf]))
 centers_r = 0.5*(edges_r[1:] + edges_r[:-1])
 centers_phi = 0.5*(edges_phi[1:] + edges_phi[:-1])
 print(SHAPE)
@@ -37,12 +33,41 @@ print(edges_r)
 print(edges_phi)
 
 # Plot the data
-for shapenum in [1, 2]:
-    plt.figure(figsize=(20, 20))
-    plt.title(titles[shapenum], fontsize=40)
-    plt.imshow(DATA[shapenum, 2][1:-1, 1:-1],
-               norm=Normalize(), origin='lower')
-    plt.colorbar()
-    plt.xlabel("phi bin", fontsize=30)
-    plt.ylabel("r bin", fontsize=30)
-    plt.show()
+fig, ax = plt.subplots(figsize=(20,20), 
+                       subplot_kw={'projection': 'polar'})
+
+plt.title("DIPOLE", fontsize=40)
+
+#normclass = LogNorm
+normclass = Normalize
+cmap = 'viridis'
+
+DATA = DATA[1]
+
+#area = area * np.exp(-np.square(centers_r[:,None])/0.4)
+area = np.ones_like(DATA[1:-1, 1:-1])
+area = np.pi * (edges_r[1:,None]**2 - edges_r[:-1,None]**2) * (edges_phi[None,1:] - edges_phi[None,:-1]) / (2*np.pi)
+
+
+pc = ax.pcolormesh(edges_phi, edges_r, 
+                   DATA[1:-1, 1:-1]/area,
+                   cmap=cmap, norm=normclass())
+pc2 = ax.pcolormesh(np.pi-edges_phi, edges_r, 
+                    DATA[1:-1, 1:-1]/area,
+                    cmap=cmap, norm=normclass())
+pc3 = ax.pcolormesh(np.pi+edges_phi, edges_r, 
+                   DATA[1:-1, 1:-1]/area,
+                   cmap=cmap, norm=normclass())
+pc4 = ax.pcolormesh(2*np.pi-edges_phi, edges_r, 
+                    DATA[1:-1, 1:-1]/area,
+                    cmap=cmap, norm=normclass())
+fig.colorbar(pc)
+
+#plt.imshow(DATA[shapenum, 2][1:-1, 1:-1],
+#           norm=Normalize(), origin='lower')
+#plt.colorbar()
+#plt.xlabel("phi bin", fontsize=30)
+#plt.ylabel("r bin", fontsize=30)
+plt.show()
+
+#

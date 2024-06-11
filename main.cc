@@ -44,6 +44,7 @@ void setup_example_recojet(jet& recoJet){
 void make_random_jet(jet& recoJet, unsigned nPart){
     static std::default_random_engine gen(12);
     static std::normal_distribution<double> normal(0.0, 0.4);
+    //static std::uniform_real_distribution<double> normal(-0.4, 0.4);
 
     double totalPt=0;
     double weightedEta=0;
@@ -79,7 +80,7 @@ void make_random_jet(jet& recoJet, unsigned nPart){
 int main(){
     std::vector<double> RLedges({1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 3e-1, 1.0});
     auto RLax = std::make_shared<boost::histogram::axis::variable<double>>(RLedges);
-    std::vector<double> RLedges_coarse({0.001, 0.10, 0.20});
+    std::vector<double> RLedges_coarse({0.10, 0.20});
     auto RLax_coarse = std::make_shared<boost::histogram::axis::variable<double>>(RLedges_coarse);
 
     std::vector<double> xiedges({1e-3, 0.5, 1.01});
@@ -120,7 +121,7 @@ int main(){
 
 
     std::shared_ptr<fastEEC::result_t<double>> EEC_accu = nullptr;
-    for(int REP=0; REP<1000; ++REP){
+    for(int REP=0; REP<50000; ++REP){
         //printf("\n\n\n\n\n\n");
         //setup example reco jet
         jet recoJet;
@@ -146,7 +147,7 @@ int main(){
             r_dipole_ax, ct_dipole_ax,
             r_tee_ax, ct_tee_ax,
             r_tri_ax, ct_tri_ax,
-            0.005
+            0.05
         );
 
         if (REP==0){
@@ -156,19 +157,18 @@ int main(){
         }
 
         printf("Ran %u:\n", REP);
-        printf("\tshape 0: %g\n", recursive_reduce((*(*EEC_reco).resolved4_shapes)[0], 0.0));
-        printf("\tshape 1: %g\n", recursive_reduce((*(*EEC_reco).resolved4_shapes)[1], 0.0));
-        printf("\tshape 2: %g\n", recursive_reduce((*(*EEC_reco).resolved4_shapes)[2], 0.0));
-        printf("\tshape 3: %g\n", recursive_reduce((*(*EEC_reco).resolved4_shapes)[3], 0.0));
+        printf("\tdipole: %g\n", recursive_reduce(*(EEC_reco->resolved4_shapes.dipole), 0.0));
+        printf("\ttee   : %g\n", recursive_reduce(*(EEC_reco->resolved4_shapes.tee), 0.0));
+        fflush(stdout);
     }
 
     printf("\n\n");
-    printf("Final: %g\n", recursive_reduce((*(*EEC_accu).resolved4_shapes), 0.0));
-    printf("\tshape 0: %g\n", recursive_reduce((*(*EEC_accu).resolved4_shapes)[0], 0.0));
-    printf("\tshape 1: %g\n", recursive_reduce((*(*EEC_accu).resolved4_shapes)[1], 0.0));
-    printf("\tshape 2: %g\n", recursive_reduce((*(*EEC_accu).resolved4_shapes)[2], 0.0));
-    printf("\tshape 3: %g\n", recursive_reduce((*(*EEC_accu).resolved4_shapes)[3], 0.0));
+    printf("Final:\n");
+    printf("\tdipole: %g\n", recursive_reduce(*(EEC_accu->resolved4_shapes.dipole), 0.0));
+    printf("\ttee   : %g\n", recursive_reduce(*(EEC_accu->resolved4_shapes.tee), 0.0));
+    fflush(stdout);
 
-    fastEEC::dumpToFile(*((*EEC_accu).resolved4_shapes), "resolved4_shapes.dat");
+    fastEEC::dumpToFile(*(EEC_accu->resolved4_shapes.dipole), "dipole.dat");
+    fastEEC::dumpToFile(*(EEC_accu->resolved4_shapes.tee), "tee.dat");
     return 0;
 }
