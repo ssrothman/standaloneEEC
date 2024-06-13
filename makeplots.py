@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
 
 # Load the data
-with open("tee.dat", 'r') as f:
+with open("dipole.dat", 'r') as f:
     l0 = f.readline()
     l1 = f.readline()
 
@@ -48,19 +48,21 @@ DATA = DATA[1]
 area = np.ones_like(DATA[1:-1, 1:-1])
 area = np.pi * (edges_r[1:,None]**2 - edges_r[:-1,None]**2) * (edges_phi[None,1:] - edges_phi[None,:-1]) / (2*np.pi)
 
+DATA = DATA[1:-1, 1:-1]/area
+DATA = DATA/np.mean(DATA)
 
 pc = ax.pcolormesh(edges_phi, edges_r, 
-                   DATA[1:-1, 1:-1]/area,
-                   cmap=cmap, norm=normclass())
+                   DATA,
+                   cmap=cmap, norm=Normalize(vmin=0.8, vmax=1.2))
 pc2 = ax.pcolormesh(np.pi-edges_phi, edges_r, 
-                    DATA[1:-1, 1:-1]/area,
-                    cmap=cmap, norm=normclass())
+                    DATA,
+                   cmap=cmap, norm=Normalize(vmin=0.8, vmax=1.2))
 pc3 = ax.pcolormesh(np.pi+edges_phi, edges_r, 
-                   DATA[1:-1, 1:-1]/area,
-                   cmap=cmap, norm=normclass())
+                   DATA,
+                   cmap=cmap, norm=Normalize(vmin=0.8, vmax=1.2))
 pc4 = ax.pcolormesh(2*np.pi-edges_phi, edges_r, 
-                    DATA[1:-1, 1:-1]/area,
-                    cmap=cmap, norm=normclass())
+                    DATA,
+                   cmap=cmap, norm=Normalize(vmin=0.8, vmax=1.2))
 fig.colorbar(pc)
 
 #plt.imshow(DATA[shapenum, 2][1:-1, 1:-1],

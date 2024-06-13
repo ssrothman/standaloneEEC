@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <iomanip>
 #include <iostream>
+#include <unordered_map>
 
 #include "SRothman/SimonTools/src/jets.h"
 #include "SRothman/SimonTools/src/printPart.h"
@@ -10,26 +11,70 @@
 #include "SRothman/EECs/src/run.h"
 
 #include "SRothman/SimonTools/src/recursive_reduce.h"
-
 #include "testcoords.h"
 
-void setup_example_recojet(jet& recoJet){
+#include "SRothman/armadillo-12.2.0/include/armadillo"
+
+void example_recojet(const jet& genJet, jet& recoJet, arma::mat& ptrans,
+                    std::vector<bool>& PU, std::vector<bool>& UM){
+    static constexpr float pmiss = 0.1;
+    static constexpr float psplit = 0.1;
+    static std::default_random_engine gen(12);
+    static std::uniform_real_distribution<double> uniform(0.0, 1.0);
+
     double totalPt=0.0;
     double weightedEta=0.0;
     double weightedPhi=0.0;
 
-    for(unsigned i=0; i<etas.size(); ++i){
-        recoJet.particles.emplace_back(
-            pts.at(i),
-            etas.at(i),
-            phis.at(i)
-        );
-        ++recoJet.nPart;
+    PU.clear();
+    UM.clear();
 
-        totalPt += pts.at(i);
-        weightedEta += pts.at(i)*etas.at(i);
-        weightedPhi += pts.at(i)*phis.at(i);
+    std::unordered_map<unsigned, std::vector<unsigned>> genToReco;
+
+    for (unsigned iGen =0; iGen < genJet.nPart; ++iGen){
+        const auto& pGen = genJet.particles[iGen];
+
+        if (uniform(gen) < pmiss){
+            PU.emplace_back(1);
+            UM.emplace_back(1);
+            continue;
+        } else {
+            PU.emplace_back(0);
+            UM.emplace_back(0);
+
+            if(uniform(gen) < psplit){
+                recoJet.particles.emplace_back(pGen.pt/2, 
+                        pGen.eta+0.02, pGen.phi-0.02);
+
+                genToReco[iGen].emplace_back(recoJet.nPart);
+                ++recoJet.nPart;
+
+                totalPt += pGen.pt/2;
+                weightedEta += pGen.pt*(pGen.eta+0.02)/2;
+                weightedPhi += pGen.pt*(pGen.phi-0.02)/2;
+
+                recoJet.particles.emplace_back(pGen.pt/2, 
+                        pGen.eta-0.02, pGen.phi+0.02);
+
+                genToReco[iGen].emplace_back(recoJet.nPart);
+                ++recoJet.nPart;
+
+                totalPt += pGen.pt/2;
+                weightedEta += pGen.pt*(pGen.eta-0.02)/2;
+                weightedPhi += pGen.pt*(pGen.phi+0.02)/2;
+            } else {
+                recoJet.particles.emplace_back(pGen.pt, pGen.eta, pGen.phi);
+
+                genToReco[iGen].emplace_back(recoJet.nPart);
+                ++recoJet.nPart;
+
+                totalPt += pGen.pt;
+                weightedEta += pGen.pt*pGen.eta;
+                weightedPhi += pGen.pt*pGen.phi;
+            }
+        }
     }
+
     weightedEta /= totalPt;
     weightedPhi /= totalPt;
 
@@ -39,9 +84,23 @@ void setup_example_recojet(jet& recoJet){
 
     recoJet.eta = weightedEta;
     recoJet.phi = weightedPhi;
+
+    ptrans = arma::mat(recoJet.nPart, genJet.nPart, arma::fill::zeros);
+    for (const auto& [iGen, iRecos] : genToReco){
+        if (iRecos.empty()){
+            continue;
+        } else {
+            const unsigned long len = iRecos.size();
+            for (const auto& iReco : iRecos){
+                ptrans(iReco, iGen) = 1.0/len;
+            }
+        }
+    }
+
+    std::cout << ptrans << std::endl;
 }
 
-void make_random_jet(jet& recoJet, unsigned nPart){
+void make_random_jet(jet& genJet, unsigned nPart){
     static std::default_random_engine gen(12);
     static std::normal_distribution<double> normal(0.0, 0.4);
     //static std::uniform_real_distribution<double> normal(-0.4, 0.4);
@@ -54,12 +113,12 @@ void make_random_jet(jet& recoJet, unsigned nPart){
         double eta = normal(gen);
         double phi = normal(gen);
 
-        recoJet.particles.emplace_back(
+        genJet.particles.emplace_back(
             pt,
             eta,
             phi
         );
-        ++recoJet.nPart;
+        ++genJet.nPart;
 
         totalPt += pt;
         weightedEta += pt*eta;
@@ -69,12 +128,12 @@ void make_random_jet(jet& recoJet, unsigned nPart){
     weightedEta /= totalPt;
     weightedPhi /= totalPt;
 
-    recoJet.pt = totalPt;
-    recoJet.sumpt = totalPt;
-    recoJet.rawpt = totalPt;
+    genJet.pt = totalPt;
+    genJet.sumpt = totalPt;
+    genJet.rawpt = totalPt;
 
-    recoJet.eta = weightedEta;
-    recoJet.phi = weightedPhi;
+    genJet.eta = weightedEta;
+    genJet.phi = weightedPhi;
 }
 
 int main(){
@@ -121,33 +180,27 @@ int main(){
 
 
     std::shared_ptr<fastEEC::result_t<double>> EEC_accu = nullptr;
-    for(int REP=0; REP<50000; ++REP){
-        //printf("\n\n\n\n\n\n");
-        //setup example reco jet
+    for(int REP=0; REP<2; ++REP){
+        jet genJet;
+        make_random_jet(genJet, 10);
+
         jet recoJet;
-        //setup_example_recojet(recoJet);
-        make_random_jet(recoJet, 50);
-        //for(const auto& part : recoJet.particles){
-        //    printf("%0.3f, %0.3f, %0.3f\n", part.pt, part.eta, part.phi);
-        //}
-        //printf("Reco Jet: (%0.3f, %0.3f, %0.3f)\n", 
-        //        recoJet.pt, recoJet.eta, recoJet.phi);
-        //printf("PARTICLES:\n");
-        //for (const auto& part : recoJet.particles){
-        //    printPart(part);
-        //}
+        arma::mat ptrans;
+        std::vector<bool> PU, UM;
+        example_recojet(genJet, recoJet, ptrans, PU, UM);
 
         auto EEC_reco = std::make_shared<fastEEC::result_t<double>>();
 
         fastEEC::runSuperSpecific<double>(
             *EEC_reco,
-            recoJet, RLax, norm,
-            4, fastEEC::DORES4 | fastEEC::DORES3,
+            genJet, RLax, norm,
+            6, fastEEC::DORES4 | fastEEC::DORES3 | fastEEC::DOPU | fastEEC::DOTRANSFER,
             RLax_coarse, xi_ax, phi_ax,
             r_dipole_ax, ct_dipole_ax,
             r_tee_ax, ct_tee_ax,
             r_tri_ax, ct_tri_ax,
-            0.05
+            0.05,
+            &UM, &recoJet, &ptrans
         );
 
         if (REP==0){
@@ -157,18 +210,18 @@ int main(){
         }
 
         printf("Ran %u:\n", REP);
-        printf("\tdipole: %g\n", recursive_reduce(*(EEC_reco->resolved4_shapes.dipole), 0.0));
-        printf("\ttee   : %g\n", recursive_reduce(*(EEC_reco->resolved4_shapes.tee), 0.0));
+        //printf("\tdipole: %g\n", recursive_reduce(*(EEC_reco->resolved4_shapes->dipole), 0.0));
+        //printf("\ttee   : %g\n", recursive_reduce(*(EEC_reco->resolved4_shapes->tee), 0.0));
+        EEC_reco->summarize();
         fflush(stdout);
     }
 
     printf("\n\n");
     printf("Final:\n");
-    printf("\tdipole: %g\n", recursive_reduce(*(EEC_accu->resolved4_shapes.dipole), 0.0));
-    printf("\ttee   : %g\n", recursive_reduce(*(EEC_accu->resolved4_shapes.tee), 0.0));
+    EEC_accu->summarize();
     fflush(stdout);
 
-    fastEEC::dumpToFile(*(EEC_accu->resolved4_shapes.dipole), "dipole.dat");
-    fastEEC::dumpToFile(*(EEC_accu->resolved4_shapes.tee), "tee.dat");
+    fastEEC::dumpToFile(*(EEC_accu->resolved4_shapes->dipole), "dipole.dat");
+    fastEEC::dumpToFile(*(EEC_accu->resolved4_shapes->tee), "tee.dat");
     return 0;
 }

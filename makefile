@@ -2,7 +2,7 @@ MATCHINGSRC=$(wildcard SRothman/Matching/src/*.cc)
 MATCHINGHEADERS=$(wildcard SRothman/Matching/src/*.h)
 MATCHINGOBJ=$(MATCHINGSRC:.cc=.o)
 
-CXXFLAGS=-O3 -std=c++17 -Wall -Wpedantic -Wextra -ggdb3
+CXXFLAGS=-O3 -std=c++17 -pipe -pedantic-errors -Wall -W -Wundef -Wpointer-arith -Wcast-align -Wsign-compare -Wsign-compare -Wmissing-noreturn  -Wmissing-format-attribute -Wunreachable-code -Wdisabled-optimization -Werror
 
 #INCLUDES=-I./ -I/work/submit/srothman/miniforge3/envs/uproot/include
 INCLUDES=-I./ -I/home/simon/miniforge3/include
