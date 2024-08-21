@@ -118,7 +118,7 @@ class Mat : public Base< eT, Mat<eT> >
   template<typename T1, typename T2>
   inline explicit Mat(const Base<pod_type,T1>& A, const Base<pod_type,T2>& B);
   
-  inline explicit          Mat(const subview<eT>& X, const bool use_colmem);  // only to be used by the quasi_unwrap class
+  inline explicit    Mat(const subview<eT>& X, const bool use_colmem);  // only to be used by the quasi_unwrap class
   
   inline             Mat(const subview<eT>& X);
   inline Mat& operator= (const subview<eT>& X);
@@ -178,6 +178,8 @@ class Mat : public Base< eT, Mat<eT> >
   
   inline explicit    Mat(const SpSubview<eT>& X);
   inline Mat& operator= (const SpSubview<eT>& X);
+  inline Mat& operator+=(const SpSubview<eT>& X);
+  inline Mat& operator-=(const SpSubview<eT>& X);
   
   inline explicit    Mat(const spdiagview<eT>& X);
   inline Mat& operator= (const spdiagview<eT>& X);
@@ -285,10 +287,10 @@ class Mat : public Base< eT, Mat<eT> >
   template<typename T1> inline const subview_each2< Mat<eT>, 0, T1 > each_col(const Base<uword, T1>& indices) const;
   template<typename T1> inline const subview_each2< Mat<eT>, 1, T1 > each_row(const Base<uword, T1>& indices) const;
   
-  inline const Mat& each_col(const std::function< void(      Col<eT>&) >& F);
+  inline       Mat& each_col(const std::function< void(      Col<eT>&) >& F);
   inline const Mat& each_col(const std::function< void(const Col<eT>&) >& F) const;
   
-  inline const Mat& each_row(const std::function< void(      Row<eT>&) >& F);
+  inline       Mat& each_row(const std::function< void(      Row<eT>&) >& F);
   inline const Mat& each_row(const std::function< void(const Row<eT>&) >& F) const;
   
   
@@ -308,8 +310,8 @@ class Mat : public Base< eT, Mat<eT> >
   template<typename T1> inline void shed_rows(const Base<uword, T1>& indices);
   template<typename T1> inline void shed_cols(const Base<uword, T1>& indices);
   
-  arma_deprecated inline void insert_rows(const uword row_num, const uword N, const bool set_to_zero);
-  arma_deprecated inline void insert_cols(const uword col_num, const uword N, const bool set_to_zero);
+  arma_frown("use insert_rows(row_num, N) instead") inline void insert_rows(const uword row_num, const uword N, const bool set_to_zero);
+  arma_frown("use insert_cols(col_num, N) instead") inline void insert_cols(const uword col_num, const uword N, const bool set_to_zero);
   
   inline void insert_rows(const uword row_num, const uword N);
   inline void insert_cols(const uword col_num, const uword N);
@@ -366,6 +368,14 @@ class Mat : public Base< eT, Mat<eT> >
   template<typename T1, typename op_type> inline Mat& operator%=(const SpToDOp<T1, op_type>& X);
   template<typename T1, typename op_type> inline Mat& operator/=(const SpToDOp<T1, op_type>& X);
   
+  template<typename T1, typename op_type> inline explicit    Mat(const mtSpReduceOp<eT, T1, op_type>& X);
+  template<typename T1, typename op_type> inline Mat& operator= (const mtSpReduceOp<eT, T1, op_type>& X);
+  template<typename T1, typename op_type> inline Mat& operator+=(const mtSpReduceOp<eT, T1, op_type>& X);
+  template<typename T1, typename op_type> inline Mat& operator-=(const mtSpReduceOp<eT, T1, op_type>& X);
+  template<typename T1, typename op_type> inline Mat& operator*=(const mtSpReduceOp<eT, T1, op_type>& X);
+  template<typename T1, typename op_type> inline Mat& operator%=(const mtSpReduceOp<eT, T1, op_type>& X);
+  template<typename T1, typename op_type> inline Mat& operator/=(const mtSpReduceOp<eT, T1, op_type>& X);
+  
   template<typename T1, typename T2, typename glue_type> inline             Mat(const Glue<T1, T2, glue_type>& X);
   template<typename T1, typename T2, typename glue_type> inline Mat& operator= (const Glue<T1, T2, glue_type>& X);
   template<typename T1, typename T2, typename glue_type> inline Mat& operator+=(const Glue<T1, T2, glue_type>& X);
@@ -392,6 +402,14 @@ class Mat : public Base< eT, Mat<eT> >
   template<typename T1, typename T2, typename glue_type> inline Mat& operator*=(const mtGlue<eT, T1, T2, glue_type>& X);
   template<typename T1, typename T2, typename glue_type> inline Mat& operator%=(const mtGlue<eT, T1, T2, glue_type>& X);
   template<typename T1, typename T2, typename glue_type> inline Mat& operator/=(const mtGlue<eT, T1, T2, glue_type>& X);
+  
+  template<typename T1, typename T2, typename glue_type> inline             Mat(const SpToDGlue<T1, T2, glue_type>& X);
+  template<typename T1, typename T2, typename glue_type> inline Mat& operator= (const SpToDGlue<T1, T2, glue_type>& X);
+  template<typename T1, typename T2, typename glue_type> inline Mat& operator+=(const SpToDGlue<T1, T2, glue_type>& X);
+  template<typename T1, typename T2, typename glue_type> inline Mat& operator-=(const SpToDGlue<T1, T2, glue_type>& X);
+  template<typename T1, typename T2, typename glue_type> inline Mat& operator*=(const SpToDGlue<T1, T2, glue_type>& X);
+  template<typename T1, typename T2, typename glue_type> inline Mat& operator%=(const SpToDGlue<T1, T2, glue_type>& X);
+  template<typename T1, typename T2, typename glue_type> inline Mat& operator/=(const SpToDGlue<T1, T2, glue_type>& X);
   
   
   arma_warn_unused arma_inline const eT& at_alt     (const uword ii) const;
@@ -424,11 +442,11 @@ class Mat : public Base< eT, Mat<eT> >
   arma_warn_unused arma_inline bool is_rowvec() const;
   arma_warn_unused arma_inline bool is_colvec() const;
   arma_warn_unused arma_inline bool is_square() const;
-  arma_warn_unused      inline bool is_finite() const;
   
-  arma_warn_unused inline bool has_inf()       const;
-  arma_warn_unused inline bool has_nan()       const;
-  arma_warn_unused inline bool has_nonfinite() const;
+  arma_warn_unused inline bool internal_is_finite()     const;
+  arma_warn_unused inline bool internal_has_inf()       const;
+  arma_warn_unused inline bool internal_has_nan()       const;
+  arma_warn_unused inline bool internal_has_nonfinite() const;
   
   arma_warn_unused inline bool is_sorted(const char* direction = "ascend")       const;
   arma_warn_unused inline bool is_sorted(const char* direction, const uword dim) const;
@@ -454,63 +472,63 @@ class Mat : public Base< eT, Mat<eT> >
   
   
   template<typename eT2, typename expr>
-  inline void copy_size(const Base<eT2,expr>& X);
+  inline Mat& copy_size(const Base<eT2,expr>& X);
   
-  inline void set_size(const uword new_n_elem);
-  inline void set_size(const uword new_n_rows, const uword new_n_cols);
-  inline void set_size(const SizeMat& s);
+  inline Mat& set_size(const uword new_n_elem);
+  inline Mat& set_size(const uword new_n_rows, const uword new_n_cols);
+  inline Mat& set_size(const SizeMat& s);
   
-  inline void   resize(const uword new_n_elem);
-  inline void   resize(const uword new_n_rows, const uword new_n_cols);
-  inline void   resize(const SizeMat& s);
+  inline Mat&   resize(const uword new_n_elem);
+  inline Mat&   resize(const uword new_n_rows, const uword new_n_cols);
+  inline Mat&   resize(const SizeMat& s);
   
-  inline void  reshape(const uword new_n_rows, const uword new_n_cols);
-  inline void  reshape(const SizeMat& s);
+  inline Mat&  reshape(const uword new_n_rows, const uword new_n_cols);
+  inline Mat&  reshape(const SizeMat& s);
   
-  arma_deprecated inline void reshape(const uword new_n_rows, const uword new_n_cols, const uword dim);  //!< NOTE: don't use this form: it will be removed
+  arma_frown("use reshape(n_rows, n_cols) instead") inline void reshape(const uword new_n_rows, const uword new_n_cols, const uword dim);  //!< NOTE: don't use this form: it will be removed
   
   
-  template<typename functor> inline const Mat&  for_each(functor F);
+  template<typename functor> inline       Mat&  for_each(functor F);
   template<typename functor> inline const Mat&  for_each(functor F) const;
   
-  template<typename functor> inline const Mat& transform(functor F);
-  template<typename functor> inline const Mat&     imbue(functor F);
+  template<typename functor> inline       Mat& transform(functor F);
+  template<typename functor> inline       Mat&     imbue(functor F);
   
   
-  inline const Mat& replace(const eT old_val, const eT new_val);
+  inline Mat& replace(const eT old_val, const eT new_val);
   
-  inline const Mat& clean(const pod_type threshold);
+  inline Mat& clean(const pod_type threshold);
   
-  inline const Mat& clamp(const eT min_val, const eT max_val);
+  inline Mat& clamp(const eT min_val, const eT max_val);
   
-  inline const Mat& fill(const eT val);
+  inline Mat& fill(const eT val);
   
   template<typename fill_type>
-  inline const Mat& fill(const fill::fill_class<fill_type>& f);
+  inline Mat& fill(const fill::fill_class<fill_type>& f);
   
-  inline const Mat& zeros();
-  inline const Mat& zeros(const uword new_n_elem);
-  inline const Mat& zeros(const uword new_n_rows, const uword new_n_cols);
-  inline const Mat& zeros(const SizeMat& s);
+  inline Mat& zeros();
+  inline Mat& zeros(const uword new_n_elem);
+  inline Mat& zeros(const uword new_n_rows, const uword new_n_cols);
+  inline Mat& zeros(const SizeMat& s);
   
-  inline const Mat& ones();
-  inline const Mat& ones(const uword new_n_elem);
-  inline const Mat& ones(const uword new_n_rows, const uword new_n_cols);
-  inline const Mat& ones(const SizeMat& s);
+  inline Mat& ones();
+  inline Mat& ones(const uword new_n_elem);
+  inline Mat& ones(const uword new_n_rows, const uword new_n_cols);
+  inline Mat& ones(const SizeMat& s);
   
-  inline const Mat& randu();
-  inline const Mat& randu(const uword new_n_elem);
-  inline const Mat& randu(const uword new_n_rows, const uword new_n_cols);
-  inline const Mat& randu(const SizeMat& s);
+  inline Mat& randu();
+  inline Mat& randu(const uword new_n_elem);
+  inline Mat& randu(const uword new_n_rows, const uword new_n_cols);
+  inline Mat& randu(const SizeMat& s);
   
-  inline const Mat& randn();
-  inline const Mat& randn(const uword new_n_elem);
-  inline const Mat& randn(const uword new_n_rows, const uword new_n_cols);
-  inline const Mat& randn(const SizeMat& s);
+  inline Mat& randn();
+  inline Mat& randn(const uword new_n_elem);
+  inline Mat& randn(const uword new_n_rows, const uword new_n_cols);
+  inline Mat& randn(const SizeMat& s);
   
-  inline const Mat& eye();
-  inline const Mat& eye(const uword new_n_rows, const uword new_n_cols);
-  inline const Mat& eye(const SizeMat& s);
+  inline Mat& eye();
+  inline Mat& eye(const uword new_n_rows, const uword new_n_cols);
+  inline Mat& eye(const SizeMat& s);
   
   arma_cold inline void      reset();
   arma_cold inline void soft_reset();
@@ -540,15 +558,15 @@ class Mat : public Base< eT, Mat<eT> >
   arma_cold inline bool load(const  csv_name&    spec, const file_type type =   csv_ascii);
   arma_cold inline bool load(      std::istream& is,   const file_type type = auto_detect);
   
-  arma_deprecated inline bool quiet_save(const std::string   name, const file_type type = arma_binary) const;
-  arma_deprecated inline bool quiet_save(const hdf5_name&    spec, const file_type type = hdf5_binary) const;
-  arma_deprecated inline bool quiet_save(const  csv_name&    spec, const file_type type =   csv_ascii) const;
-  arma_deprecated inline bool quiet_save(      std::ostream& os,   const file_type type = arma_binary) const;
+  arma_frown("use save() instead") inline bool quiet_save(const std::string   name, const file_type type = arma_binary) const;
+  arma_frown("use save() instead") inline bool quiet_save(const hdf5_name&    spec, const file_type type = hdf5_binary) const;
+  arma_frown("use save() instead") inline bool quiet_save(const  csv_name&    spec, const file_type type =   csv_ascii) const;
+  arma_frown("use save() instead") inline bool quiet_save(      std::ostream& os,   const file_type type = arma_binary) const;
   
-  arma_deprecated inline bool quiet_load(const std::string   name, const file_type type = auto_detect);
-  arma_deprecated inline bool quiet_load(const hdf5_name&    spec, const file_type type = hdf5_binary);
-  arma_deprecated inline bool quiet_load(const  csv_name&    spec, const file_type type =   csv_ascii);
-  arma_deprecated inline bool quiet_load(      std::istream& is,   const file_type type = auto_detect);
+  arma_frown("use load() instead") inline bool quiet_load(const std::string   name, const file_type type = auto_detect);
+  arma_frown("use load() instead") inline bool quiet_load(const hdf5_name&    spec, const file_type type = hdf5_binary);
+  arma_frown("use load() instead") inline bool quiet_load(const  csv_name&    spec, const file_type type =   csv_ascii);
+  arma_frown("use load() instead") inline bool quiet_load(      std::istream& is,   const file_type type = auto_detect);
   
   
   // for container-like functionality

@@ -37,7 +37,7 @@ TEST_CASE("gen_randu_1")
   REQUIRE( (accu(B)/A.n_elem) == Approx(0.5).margin(0.02) );
   REQUIRE( (accu(C)/A.n_elem) == Approx(0.5).margin(0.02) );
 
-  REQUIRE( (mean(vectorise(A))) == Approx(0.5).margin(0.02) );
+  REQUIRE( (mean(vectorise(A))) == Approx(0.5).margin(0.025) );
   }
 
 
@@ -54,6 +54,6 @@ TEST_CASE("gen_randu_2")
   REQUIRE( accu(A.tail_cols(1)) == Approx(0.0).margin(0.001) );
   REQUIRE( accu(A.tail_rows(1)) == Approx(0.0).margin(0.001) );
 
-  REQUIRE( mean(vectorise(A(span(1,48),span(1,58)))) == Approx(double(0.5)).margin(0.02) );
+  REQUIRE( mean(vectorise(A(span(1,48),span(1,58)))) == Approx(double(0.5)).margin(0.025) );
   }
 

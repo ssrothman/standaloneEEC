@@ -114,8 +114,10 @@
 
 
 #if defined(__APPLE__) || defined(__apple_build_version__)
-  #undef  ARMA_BLAS_SDOT_BUG
-  #define ARMA_BLAS_SDOT_BUG
+  // NOTE: Apple accelerate framework has broken implementations of functions that return a float value,
+  // NOTE: such as sdot(), slange(), clange(), slansy(), clanhe(), slangb(), snrm2(), sasum()
+  #undef  ARMA_BLAS_FLOAT_BUG
+  #define ARMA_BLAS_FLOAT_BUG
   
   // #undef  ARMA_HAVE_POSIX_MEMALIGN
   // NOTE: posix_memalign() is available since macOS 10.6 (late 2009 onwards)
@@ -159,13 +161,12 @@
   #undef  ARMA_GCC_VERSION
   #define ARMA_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
   
-  #if (ARMA_GCC_VERSION < 40800)
-    #error "*** newer compiler required; need gcc 4.8 or later ***"
+  #if (ARMA_GCC_VERSION < 60100)
+    #error "*** newer compiler required; need gcc 6.1 or newer ***"
   #endif
   
-  // #if (ARMA_GCC_VERSION < 60100)
-  //   #pragma message ("WARNING: support for gcc versions older than 6.1 is deprecated")
-  // #endif
+  // gcc 6.1 has proper C++14 support and fixes an OpenMP related bug:
+  // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=57580
   
   #define ARMA_GOOD_COMPILER
   
@@ -298,13 +299,11 @@
     #error "*** newer compiler required ***"
   #endif
   
-  #if (__INTEL_COMPILER < 1500)
+  #if (__INTEL_COMPILER < 1600)
     #error "*** newer compiler required ***"
   #endif
   
   #undef  ARMA_HAVE_GCC_ASSUME_ALIGNED
-  #undef  ARMA_HAVE_ICC_ASSUME_ALIGNED
-  #define ARMA_HAVE_ICC_ASSUME_ALIGNED
   
 #endif
 
@@ -317,12 +316,15 @@
   
   #undef  arma_deprecated
   #define arma_deprecated __declspec(deprecated)
-  // #undef  arma_inline
-  // #define arma_inline __forceinline inline
+  
+  #undef  arma_noinline
+  #define arma_noinline __declspec(noinline)
+  
   
   #pragma warning(push)
   
   #pragma warning(disable: 4127)  // conditional expression is constant
+  #pragma warning(disable: 4146)  // unary minus operator applied to unsigned type, result still unsigned
   #pragma warning(disable: 4180)  // qualifier has no meaning
   #pragma warning(disable: 4244)  // possible loss of data when converting types (see also 4305)
   #pragma warning(disable: 4510)  // default constructor could not be generated
@@ -341,8 +343,6 @@
   #pragma warning(disable: 4711)  // call was inlined
   #pragma warning(disable: 4714)  // __forceinline can't be inlined
   #pragma warning(disable: 4800)  // value forced to bool
-  
-  // NOTE: also possible to disable 4146 (unary minus operator applied to unsigned type, result still unsigned)
   
   #if defined(ARMA_HAVE_CXX17)
   #pragma warning(disable: 26812)  // unscoped enum
@@ -370,18 +370,6 @@
   //   #pragma warning(disable: 4324)
   //   
   // #endif
-  
-#endif
-
-
-#if defined(__SUNPRO_CC)
-  
-  // http://www.oracle.com/technetwork/server-storage/solarisstudio/training/index-jsp-141991.html
-  // http://www.oracle.com/technetwork/server-storage/solarisstudio/documentation/cplusplus-faq-355066.html
-  
-  #if (__SUNPRO_CC < 0x5140)
-    #error "*** newer compiler required ***"
-  #endif
   
 #endif
 
@@ -428,14 +416,16 @@
 #endif
 
 
-#if defined(ARMA_USE_OPENMP)
-  #if (defined(ARMA_GCC_VERSION) && (ARMA_GCC_VERSION < 50400))
-    // due to https://gcc.gnu.org/bugzilla/show_bug.cgi?id=57580
-    #undef ARMA_USE_OPENMP
-    #if !defined(ARMA_DONT_PRINT_OPENMP_WARNING)
-      #pragma message ("WARNING: use of OpenMP disabled due to compiler bug in gcc <= 5.3")
-    #endif
-  #endif
+#if (defined(__FAST_MATH__) || (defined(__FINITE_MATH_ONLY__) && (__FINITE_MATH_ONLY__ > 0)) || defined(_M_FP_FAST))
+  #undef  ARMA_FAST_MATH
+  #define ARMA_FAST_MATH
+#endif
+
+
+#if defined(ARMA_FAST_MATH) && !defined(ARMA_DONT_PRINT_FAST_MATH_WARNING)
+  #pragma message ("WARNING: compiler is in fast math mode; some functions may be unreliable.")
+  #pragma message ("WARNING: to suppress this warning and related warnings,")
+  #pragma message ("WARNING: #define ARMA_DONT_PRINT_FAST_MATH_WARNING before #include <armadillo>")
 #endif
 
 
@@ -475,8 +465,7 @@
 #if defined(min) || defined(max)
   #undef min
   #undef max
-  #pragma message ("WARNING: undefined conflicting 'min' and/or 'max' macros;")
-  #pragma message ("WARNING: suggest to define NOMINMAX before including any windows header")
+  #pragma message ("WARNING: undefined conflicting 'min' and/or 'max' macros")
 #endif
 
 // https://sourceware.org/bugzilla/show_bug.cgi?id=19239
@@ -488,7 +477,7 @@
 // NOTE: option 'ARMA_IGNORE_DEPRECATED_MARKER' will be removed
 // NOTE: disabling deprecation messages is counter-productive
 
-#if defined(ARMA_IGNORE_DEPRECATED_MARKER) && (!defined(ARMA_DONT_IGNORE_DEPRECATED_MARKER)) && (!defined(ARMA_EXTRA_DEBUG))
+#if defined(ARMA_IGNORE_DEPRECATED_MARKER) && (!defined(ARMA_DONT_IGNORE_DEPRECATED_MARKER)) && (!defined(ARMA_DEBUG))
   #undef  arma_deprecated
   #define arma_deprecated
 

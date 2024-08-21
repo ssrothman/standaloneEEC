@@ -36,7 +36,7 @@ shift
   const sword N
   )
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const uword len = (N < 0) ? uword(-N) : uword(N);
   const uword neg = (N < 0) ? uword( 1) : uword(0);
@@ -61,7 +61,7 @@ shift
   const sword N
   )
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   typedef typename T1::elem_type eT;
   
@@ -95,11 +95,11 @@ shift
   const uword dim
   )
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   typedef typename T1::elem_type eT;
   
-  arma_debug_check( (dim > 1), "shift(): parameter 'dim' must be 0 or 1" );
+  arma_conform_check( (dim > 1), "shift(): parameter 'dim' must be 0 or 1" );
   
   const uword len = (N < 0) ? uword(-N) : uword(N);
   const uword neg = (N < 0) ? uword( 1) : uword(0);
@@ -109,6 +109,41 @@ shift
   Mat<eT> out;
   
   op_shift::apply_noalias(out, U.M, len, neg, dim);
+  
+  return out;
+  }
+
+
+
+//
+
+
+
+template<typename T1>
+arma_warn_unused
+inline
+SpMat<typename T1::elem_type>
+shift
+  (
+  const SpBase<typename T1::elem_type,T1>& expr,
+  const sword N,
+  const uword dim = 0
+  )
+  {
+  arma_debug_sigprint();
+  
+  typedef typename T1::elem_type eT;
+  
+  arma_conform_check( (dim > 1), "shift(): parameter 'dim' must be 0 or 1" );
+  
+  const uword len = (N < 0) ? uword(-N) : uword(N);
+  const uword neg = (N < 0) ? uword( 1) : uword(0);
+  
+  unwrap_spmat<T1> U(expr.get_ref());
+  
+  SpMat<eT> out;
+  
+  spop_shift::apply_noalias(out, U.M, len, neg, dim);
   
   return out;
   }

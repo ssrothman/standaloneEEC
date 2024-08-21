@@ -1,13 +1,13 @@
 
-LIB_FLAGS = -larmadillo
+LIB_FLAGS = -L../ -larmadillo
 #LIB_FLAGS = -lblas -llapack 
 #LIB_FLAGS = -lopenblas -llapack 
 
-#CXX_FLAGS = -std=c++11 -Wshadow -Wall -pedantic -O0
-CXX_FLAGS = -std=c++11 -Wshadow -Wall -pedantic -Og
-#CXX_FLAGS = -std=c++11 -Wshadow -Wall -pedantic -Og -fopenmp
-#CXX_FLAGS = -std=c++11 -Wshadow -Wall -pedantic -Og -DARMA_DONT_USE_WRAPPER
-#CXX_FLAGS = -std=c++11 -Wshadow -Wall -pedantic -Og -fsanitize=address -fsanitize=leak -fsanitize=undefined -fsanitize=bounds -fsanitize=bounds-strict -g
+#CXX_FLAGS = -I../tmp/include/ -std=c++14 -Wshadow -Wall -pedantic -O0
+CXX_FLAGS = -I../tmp/include/ -std=c++14 -Wshadow -Wall -pedantic -Og
+#CXX_FLAGS = -I../tmp/include/ -std=c++14 -Wshadow -Wall -pedantic -Og -fopenmp
+#CXX_FLAGS = -I../tmp/include/ -std=c++14 -Wshadow -Wall -pedantic -Og -DARMA_DONT_USE_WRAPPER
+#CXX_FLAGS = -I../tmp/include/ -std=c++14 -Wshadow -Wall -pedantic -Og -fsanitize=address -fsanitize=leak -fsanitize=undefined -fsanitize=bounds -fsanitize=bounds-strict -g
 
 
 OBJECTS = $(patsubst %.cpp,%.o,$(wildcard *.cpp))

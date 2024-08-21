@@ -104,24 +104,24 @@ class SpSubview : public SpBase< eT, SpSubview<eT> >
   inline void randn();
   
   
-  arma_hot inline SpSubview_MapMat_val<eT> operator[](const uword i);
-  arma_hot inline eT                       operator[](const uword i) const;
+  arma_warn_unused inline SpSubview_MapMat_val<eT> operator[](const uword i);
+  arma_warn_unused inline eT                       operator[](const uword i) const;
   
-  arma_hot inline SpSubview_MapMat_val<eT> operator()(const uword i);
-  arma_hot inline eT                       operator()(const uword i) const;
+  arma_warn_unused inline SpSubview_MapMat_val<eT> operator()(const uword i);
+  arma_warn_unused inline eT                       operator()(const uword i) const;
   
-  arma_hot inline SpSubview_MapMat_val<eT> operator()(const uword in_row, const uword in_col);
-  arma_hot inline eT                       operator()(const uword in_row, const uword in_col) const;
+  arma_warn_unused inline SpSubview_MapMat_val<eT> operator()(const uword in_row, const uword in_col);
+  arma_warn_unused inline eT                       operator()(const uword in_row, const uword in_col) const;
   
-  arma_hot inline SpSubview_MapMat_val<eT> at(const uword i);
-  arma_hot inline eT                       at(const uword i) const;
+  arma_warn_unused inline SpSubview_MapMat_val<eT> at(const uword i);
+  arma_warn_unused inline eT                       at(const uword i) const;
   
-  arma_hot inline SpSubview_MapMat_val<eT> at(const uword in_row, const uword in_col);
-  arma_hot inline eT                       at(const uword in_row, const uword in_col) const;
+  arma_warn_unused inline SpSubview_MapMat_val<eT> at(const uword in_row, const uword in_col);
+  arma_warn_unused inline eT                       at(const uword in_row, const uword in_col) const;
   
   inline bool check_overlap(const SpSubview& x) const;
   
-  inline bool is_vec() const;
+  arma_warn_unused inline bool is_vec() const;
   
   inline       SpSubview_row<eT> row(const uword row_num);
   inline const SpSubview_row<eT> row(const uword row_num) const;
@@ -361,6 +361,8 @@ class SpSubview_col : public SpSubview<eT>
   arma_warn_unused inline const SpOp<SpSubview_col<eT>,spop_htrans> ht() const;
   arma_warn_unused inline const SpOp<SpSubview_col<eT>,spop_strans> st() const;
   
+  arma_warn_unused inline const SpToDOp<SpSubview_col<eT>,op_sp_as_dense> as_dense() const;
+  
   
   protected:
   
@@ -398,6 +400,8 @@ class SpSubview_row : public SpSubview<eT>
   arma_warn_unused inline const SpOp<SpSubview_row<eT>,spop_htrans>  t() const;
   arma_warn_unused inline const SpOp<SpSubview_row<eT>,spop_htrans> ht() const;
   arma_warn_unused inline const SpOp<SpSubview_row<eT>,spop_strans> st() const;
+  
+  arma_warn_unused inline const SpToDOp<SpSubview_row<eT>,op_sp_as_dense> as_dense() const;
   
   
   protected:

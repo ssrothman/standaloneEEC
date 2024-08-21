@@ -65,6 +65,13 @@ struct arma_config
   #endif
   
   
+  #if defined(ARMA_CHECK_CONFORMANCE)
+    static constexpr bool check_conform = true;
+  #else
+    static constexpr bool check_conform = false;
+  #endif
+  
+  
   #if defined(ARMA_CHECK_NONFINITE)
     static constexpr bool check_nonfinite = true;
   #else
@@ -121,20 +128,6 @@ struct arma_config
   #endif
   
   
-  #if defined(ARMA_NO_DEBUG)
-    static constexpr bool debug = false;
-  #else
-    static constexpr bool debug = true;
-  #endif
-  
-  
-  #if defined(ARMA_EXTRA_DEBUG)
-    static constexpr bool extra_debug = true;
-  #else
-    static constexpr bool extra_debug = false;
-  #endif
-  
-  
   #if defined(ARMA_GOOD_COMPILER)
     static constexpr bool good_comp = true;
   #else
@@ -181,7 +174,14 @@ struct arma_config
   #endif
   
   
-  #if (!defined(ARMA_DONT_USE_STD_MUTEX))
+  #if defined(ARMA_HAVE_CXX23)
+    static constexpr bool cxx23 = true;
+  #else
+    static constexpr bool cxx23 = false;
+  #endif
+  
+  
+  #if defined(ARMA_USE_STD_MUTEX)
     static constexpr bool std_mutex = true;
   #else
     static constexpr bool std_mutex = false;
@@ -216,10 +216,24 @@ struct arma_config
   #endif
   
   
-  #if defined(ARMA_DONT_ZERO_INIT)
-    static constexpr bool zero_init = false;
+  #if defined(ARMA_FAST_MATH)
+    static constexpr bool fast_math = true;
   #else
-    static constexpr bool zero_init = true;
+    static constexpr bool fast_math = false;
+  #endif
+  
+  
+  #if defined(ARMA_FAST_MATH) && !defined(ARMA_DONT_PRINT_FAST_MATH_WARNING)
+    static constexpr bool fast_math_warn = true;
+  #else
+    static constexpr bool fast_math_warn = false;
+  #endif
+  
+  
+  #if (!defined(ARMA_DONT_TREAT_TEXT_AS_BINARY))
+    static constexpr bool text_as_binary = true;
+  #else
+    static constexpr bool text_as_binary = false;
   #endif
   
   

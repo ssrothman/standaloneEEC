@@ -128,7 +128,7 @@ class sp_auxlib
   inline static void run_aupd_plain
     (
     const uword n_eigvals, char* which,
-    const SpMat<T>& X, const bool sym,
+    const SpMat<T>& X, const SpMat<T>& Xst, const bool sym,
     blas_int& n, eT& tol, blas_int& maxiter,
     podarray<T>& resid, blas_int& ncv, podarray<T>& v, blas_int& ldv,
     podarray<blas_int>& iparam, podarray<blas_int>& ipntr,
@@ -154,6 +154,31 @@ class sp_auxlib
   
   template<typename T>
   inline static bool rudimentary_sym_check(const SpMat< std::complex<T> >& X);
+  };
+
+
+
+template<typename eT>
+struct eigs_randu_filler
+  {
+  std::mt19937_64                    local_engine;
+  std::uniform_real_distribution<eT> local_u_distr;
+  
+  inline eigs_randu_filler();
+  
+  inline void fill(podarray<eT>& X, const uword N);
+  };
+
+
+template<typename T>
+struct eigs_randu_filler< std::complex<T> >
+  {
+  std::mt19937_64                   local_engine;
+  std::uniform_real_distribution<T> local_u_distr;
+  
+  inline eigs_randu_filler();
+  
+  inline void fill(podarray< std::complex<T> >& X, const uword N);
   };
 
 

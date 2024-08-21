@@ -1,9 +1,9 @@
 ### Armadillo: C++ Library for Linear Algebra & Scientific Computing  
 https://arma.sourceforge.net
 
-Copyright 2008-2023 Conrad Sanderson (https://conradsanderson.id.au)  
+Copyright 2008-2024 Conrad Sanderson (https://conradsanderson.id.au)  
 Copyright 2008-2016 National ICT Australia (NICTA)  
-Copyright 2017-2023 Data61 / CSIRO  
+Copyright 2017-2024 Data61 / CSIRO  
 
 ---
 
@@ -82,8 +82,8 @@ Citations are useful for the continued development and maintenance of the librar
     Journal of Open Source Software, Vol. 1, No. 2, pp. 26, 2016.  
   
   * Conrad Sanderson and Ryan Curtin.  
-    A User-Friendly Hybrid Sparse Matrix Class in C++.  
-    Lecture Notes in Computer Science (LNCS), Vol. 10931, pp. 422-430, 2018.
+    Practical Sparse Matrices in C++ with Hybrid Storage and Template-Based Expression Optimisation.  
+    Mathematical and Computational Applications, Vol. 24, No. 3, 2019.
 
 ---
 
@@ -114,9 +114,8 @@ Use of OpenBLAS (instead of standard BLAS) is strongly recommended on all system
 On macOS, the Accelerate framework can be used for BLAS and LAPACK functions.
 
 If sparse matrices are not needed, ARPACK and SuperLU are not required.
-Caveat: only SuperLU versions 5.2.x and 5.3.x can be used; SuperLU must be available as a shared library.
 
-Armadillo requires a C++ compiler that supports at least the C++11 standard.
+Armadillo requires a C++ compiler that supports at least the C++14 standard.
 
 On Linux-based systems, install the GCC C++ compiler, which is available as a pre-built package.
 The package name might be `g++` or `gcc-c++` depending on your system.
@@ -128,12 +127,18 @@ and then running the following command in a terminal window:
 
 On Windows systems, the MinGW toolset or Visual Studio C++ 2019 (MSVC) can be used.
 
+Caveats on the use of SuperLU:
+- SuperLU must be available as a shared library
+- Only the following SuperLU versions are supported: 5.2.x, 5.3.x, 6.0.x
+- SuperLU 6.0.x must be compiled with default integer size (32 bits)
+
 ---
 
 ### 5: Linux and macOS: Installation
 
 Armadillo can be installed in several ways: either manually or via cmake, with or without root access.
 The cmake based installation is preferred.
+
 The cmake tool can be downloaded from https://www.cmake.org
 or (preferably) installed using the package manager on your system;
 on macOS systems, cmake can be installed through MacPorts or Homebrew.
@@ -149,8 +154,7 @@ The cmake based installer detects which relevant libraries
 are installed on your system (eg. OpenBLAS, LAPACK, SuperLU, ARPACK, etc)
 and correspondingly modifies Armadillo's configuration.
 The installer also generates the Armadillo runtime library,
-which is a wrapper for all the detected libraries,
-and provides a thread-safe random number generator.
+which is a wrapper for all the detected libraries.
 
 Change into the directory that was created by unpacking the armadillo archive
 (eg. `cd armadillo-10.6.1`) and then run cmake using:
@@ -226,12 +230,12 @@ and hence you will need to link your programs directly with OpenBLAS, LAPACK, et
 If you have installed Armadillo via the cmake installer,
 use the following command to compile your programs:
 
-    g++ prog.cpp -o prog -O2 -std=c++11 -larmadillo
+    g++ prog.cpp -o prog -O2 -std=c++14 -larmadillo
 
 If you have installed Armadillo manually, link with OpenBLAS and LAPACK
 instead of the Armadillo runtime library:
 
-    g++ prog.cpp -o prog -O2 -std=c++11 -lopenblas -llapack
+    g++ prog.cpp -o prog -O2 -std=c++14 -lopenblas -llapack
 
 If you have manually installed Armadillo in a non-standard location,
 such as `/home/user/include/`, you will need to make sure 
@@ -239,12 +243,12 @@ that your C++ compiler searches `/home/user/include/`
 by explicitly specifying the directory as an argument/option. 
 For example, using the `-I` switch in GCC and Clang:
 
-    g++ prog.cpp -o prog -O2 -std=c++11 -I /home/user/include/ -lopenblas -llapack
+    g++ prog.cpp -o prog -O2 -std=c++14 -I /home/user/include/ -lopenblas -llapack
 
 If you're getting linking issues (unresolved symbols),
 enable the `ARMA_DONT_USE_WRAPPER` option:
 
-    g++ prog.cpp -o prog -O2 -std=c++11 -I /home/user/include/ -DARMA_DONT_USE_WRAPPER -lopenblas -llapack
+    g++ prog.cpp -o prog -O2 -std=c++14 -I /home/user/include/ -DARMA_DONT_USE_WRAPPER -lopenblas -llapack
 
 If you don't have OpenBLAS, on Linux change `-lopenblas` to `-lblas`;
 on macOS change `-lopenblas -llapack` to `-framework Accelerate`
@@ -304,15 +308,16 @@ defined in `include/armadillo_bits/config.hpp`, may need to be either enabled or
 
 The folder `examples/lib_win64` contains a copy of lib and dll files
 obtained from a pre-compiled release of OpenBLAS:
-https://github.com/xianyi/OpenBLAS/releases/  
+https://github.com/OpenMathLib/OpenBLAS/releases  
 The compilation was done by a third party.  USE AT YOUR OWN RISK.
 
 **Caveat:** 
 for any high performance scientific/engineering workloads,
 we strongly recommend using a Linux-based operating system, such as:
-  * Fedora  https://fedoraproject.org/
-  * Ubuntu  https://www.ubuntu.com/
-  * CentOS  https://centos.org/
+  * Fedora       https://fedoraproject.org/
+  * Ubuntu       https://www.ubuntu.com/
+  * Alma Linux   https://almalinux.org/
+  * Rocky Linux  https://rockylinux.org/
 
 ---
 
@@ -398,16 +403,15 @@ described in the accompanying API documentation (docs.html) specific
 to that release.
 
 Each release of Armadillo has its full version specified as A.B.C,
-where A is a major version number, B is a minor version number,
-and C is a patch level (indicating bug fixes).
-The version specification has explicit meaning,
-similar to [Semantic Versioning](https://semver.org/), as follows:
+where A is a major version number, B is a minor version number, and C is a patch level.
+The version specification has explicit meaning
+(similar to [Semantic Versioning](https://semver.org/)), as follows:
 
 * Within a major version (eg. 10), each minor version has a public API that
   strongly strives to be backwards compatible (at the source level) with the
   public API of preceding minor versions. For example, user code written for
   version 10.0 should work with version 10.1, 10.2, etc.
-  However, later minor versions may have more features (API additions and extensions)
+  However, subsequent minor versions may have more features (API additions and extensions)
   than preceding minor versions. As such, user code _specifically_
   written for version 10.2 may not work with 10.1.
 
@@ -423,7 +427,7 @@ similar to [Semantic Versioning](https://semver.org/), as follows:
 **CAVEAT:**
 the above policy applies only to the public API described in the documentation.
 Any functionality within Armadillo which is _not explicitly_ described
-in the public API documentation is considered as internal implementation details,
+in the public API documentation is considered as internal implementation detail,
 and may be changed or removed without notice.
 
 ---
@@ -457,18 +461,15 @@ Octave/Matlab with C++ code that uses Armadillo matrices.
 
 ### 16: Related Software Using Armadillo
 
-* ensmallen: fast and flexible library for numerical optimisation  
+* ensmallen: C++ library for non-linear numerical optimisation (L-BFGS, SGD, CMA-ES, etc)  
   https://ensmallen.org/
 
 * MLPACK: extensive library of machine learning algorithms  
   https://mlpack.org
 
-* CARMA: bidirectional interface between Python and Armadillo  
-  https://github.com/RUrlus/carma
-
-* RcppArmadillo: integration of Armadillo with the R system and environment  
+* RcppArmadillo: integration of Armadillo with R  
   https://dirk.eddelbuettel.com/code/rcpp.armadillo.html
 
-* PyArmadillo: streamlined linear algebra library for Python  
-  https://pyarma.sourceforge.io
+* CARMA: interface between Armadillo and Python / NumPy  
+  https://github.com/RUrlus/carma
 

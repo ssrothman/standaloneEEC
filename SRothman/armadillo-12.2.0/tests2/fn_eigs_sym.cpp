@@ -164,20 +164,27 @@ TEST_CASE("fn_eigs_sigma_test")
     vec eigval;
     mat eigvec;
     const bool status_dense = eig_sym(eigval, eigvec, d);
-    
+
     if(status_sparse && status_dense)
       {
       ++count;
+
+      // The first sparse eignevalue returned may not be the smallest---so we have to find the right place in the dense eigenvalues.
+      uword dense_index = 0;
+      while ((dense_index < eigval.n_elem - 1) && (std::abs(sp_eigval(0) - eigval(dense_index)) > std::abs(sp_eigval(0) - eigval(dense_index + 1))))
+        {
+        ++dense_index;
+        }
       
       for(uword i = 0; i < 5; ++i)
         {
         // It may be pointed the wrong direction.
-        REQUIRE( sp_eigval(i) == Approx(eigval(i)).margin(0.01) );
+        REQUIRE( sp_eigval(i) == Approx(eigval(dense_index + i)).margin(0.01) );
 
         for (size_t j = 0; j < 100; ++j)
           {
           REQUIRE( std::abs(sp_eigvec(j, i)) ==
-                   Approx(std::abs(eigvec(j, i))).margin(0.01) );
+                   Approx(std::abs(eigvec(j, dense_index + i))).margin(0.01) );
           }
         }
       }

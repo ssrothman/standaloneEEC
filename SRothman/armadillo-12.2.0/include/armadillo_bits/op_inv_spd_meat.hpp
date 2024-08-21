@@ -26,7 +26,7 @@ inline
 void
 op_inv_spd_default::apply(Mat<typename T1::elem_type>& out, const Op<T1,op_inv_spd_default>& X)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const bool status = op_inv_spd_default::apply_direct(out, X.m);
   
@@ -44,7 +44,7 @@ inline
 bool
 op_inv_spd_default::apply_direct(Mat<typename T1::elem_type>& out, const Base<typename T1::elem_type,T1>& expr)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   return op_inv_spd_full::apply_direct<T1,false>(out, expr, uword(0));
   }
@@ -60,7 +60,7 @@ inline
 void
 op_inv_spd_full::apply(Mat<typename T1::elem_type>& out, const Op<T1,op_inv_spd_full>& X)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const uword flags = X.aux_uword_a;
   
@@ -80,34 +80,29 @@ inline
 bool
 op_inv_spd_full::apply_direct(Mat<typename T1::elem_type>& out, const Base<typename T1::elem_type,T1>& expr, const uword flags)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   typedef typename T1::elem_type eT;
   typedef typename T1::pod_type   T;
   
-  if(has_user_flags == true )  { arma_extra_debug_print("op_inv_spd_full: has_user_flags = true");  }
-  if(has_user_flags == false)  { arma_extra_debug_print("op_inv_spd_full: has_user_flags = false"); }
+  if(has_user_flags == true )  { arma_debug_print("op_inv_spd_full: has_user_flags = true");  }
+  if(has_user_flags == false)  { arma_debug_print("op_inv_spd_full: has_user_flags = false"); }
   
-  const bool tiny         = has_user_flags && bool(flags & inv_opts::flag_tiny        );
+  const bool fast         = has_user_flags && bool(flags & inv_opts::flag_fast        );
   const bool allow_approx = has_user_flags && bool(flags & inv_opts::flag_allow_approx);
-  const bool likely_sympd = has_user_flags && bool(flags & inv_opts::flag_likely_sympd);
-  const bool no_sympd     = has_user_flags && bool(flags & inv_opts::flag_no_sympd    );
   const bool no_ugly      = has_user_flags && bool(flags & inv_opts::flag_no_ugly     );
   
   if(has_user_flags)
     {
-    arma_extra_debug_print("op_inv_spd_full: enabled flags:");
+    arma_debug_print("op_inv_spd_full: enabled flags:");
     
-    if(tiny        )  { arma_extra_debug_print("tiny");         }
-    if(allow_approx)  { arma_extra_debug_print("allow_approx"); }
-    if(likely_sympd)  { arma_extra_debug_print("likely_sympd"); }
-    if(no_sympd    )  { arma_extra_debug_print("no_sympd");     }
-    if(no_ugly     )  { arma_extra_debug_print("no_ugly");      }
+    if(fast        )  { arma_debug_print("fast");         }
+    if(allow_approx)  { arma_debug_print("allow_approx"); }
+    if(no_ugly     )  { arma_debug_print("no_ugly");      }
     
-    if(likely_sympd)  { arma_debug_warn_level(1, "inv_sympd(): option 'likely_sympd' ignored" ); }
-    if(no_sympd)      { arma_debug_warn_level(1, "inv_sympd(): option 'no_sympd' ignored" );     }
-    
-    arma_debug_check( (no_ugly && allow_approx), "inv_sympd(): options 'no_ugly' and 'allow_approx' are mutually exclusive" );
+    arma_conform_check( (fast    && allow_approx), "inv_sympd(): options 'fast' and 'allow_approx' are mutually exclusive"    );
+    arma_conform_check( (fast    && no_ugly     ), "inv_sympd(): options 'fast' and 'no_ugly' are mutually exclusive"         );
+    arma_conform_check( (no_ugly && allow_approx), "inv_sympd(): options 'no_ugly' and 'allow_approx' are mutually exclusive" );
     }
   
   if(no_ugly)
@@ -153,19 +148,19 @@ op_inv_spd_full::apply_direct(Mat<typename T1::elem_type>& out, const Base<typen
   
   out = expr.get_ref();
   
-  arma_debug_check( (out.is_square() == false), "inv_sympd(): given matrix must be square sized", [&](){ out.soft_reset(); } );
+  arma_conform_check( (out.is_square() == false), "inv_sympd(): given matrix must be square sized", [&](){ out.soft_reset(); } );
   
-  if((arma_config::debug) && (arma_config::warn_level > 0))
+  if((arma_config::check_conform) && (arma_config::warn_level > 0))
     {
     if(auxlib::rudimentary_sym_check(out) == false)
       {
-      if(is_cx<eT>::no )  { arma_debug_warn_level(1, "inv_sympd(): given matrix is not symmetric"); }
-      if(is_cx<eT>::yes)  { arma_debug_warn_level(1, "inv_sympd(): given matrix is not hermitian"); }
+      if(is_cx<eT>::no )  { arma_warn(1, "inv_sympd(): given matrix is not symmetric"); }
+      if(is_cx<eT>::yes)  { arma_warn(1, "inv_sympd(): given matrix is not hermitian"); }
       }
     else
     if((is_cx<eT>::yes) && (sym_helper::check_diag_imag(out) == false))
       {
-      arma_debug_warn_level(1, "inv_sympd(): imaginary components on diagonal are non-zero");
+      arma_warn(1, "inv_sympd(): imaginary components on diagonal are non-zero");
       }
     }
   
@@ -190,27 +185,13 @@ op_inv_spd_full::apply_direct(Mat<typename T1::elem_type>& out, const Base<typen
       
       if(status)  { return true; }
       }
-    else
-    if((N == 3) && tiny)
-      {
-      const bool status = op_inv_spd_full::apply_tiny_3x3(out);
-      
-      if(status)  { return true; }
-      }
-    else
-    if((N == 4) && tiny)
-      {
-      const bool status = op_inv_spd_full::apply_tiny_4x4(out);
-      
-      if(status)  { return true; }
-      }
     
     // fallthrough if optimisation failed
     }
   
   if(is_op_diagmat<T1>::value || out.is_diagmat())
     {
-    arma_extra_debug_print("op_inv_spd_full: detected diagonal matrix");
+    arma_debug_print("op_inv_spd_full: detected diagonal matrix");
     
     eT* colmem = out.memptr();
     
@@ -241,7 +222,7 @@ inline
 bool
 op_inv_spd_full::apply_tiny_2x2(Mat<eT>& X)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   typedef typename get_pod_type<eT>::result T;
   
@@ -283,66 +264,6 @@ op_inv_spd_full::apply_tiny_2x2(Mat<eT>& X)
 
 
 
-template<typename eT>
-inline
-bool
-op_inv_spd_full::apply_tiny_3x3(Mat<eT>& X)
-  {
-  arma_extra_debug_sigprint();
-  
-  // NOTE: assuming matrix X is square sized
-  // NOTE: assuming matrix X is symmetric
-  // NOTE: assuming matrix X is real
-  
-  Mat<eT> Y(3, 3, arma_nozeros_indicator());
-  
-  arrayops::copy(Y.memptr(), X.memptr(), uword(3*3));
-  
-  const bool is_posdef = auxlib::chol_simple(Y);
-  
-  if(is_posdef == false)  { return false; }
-  
-  const bool status = op_inv_gen_full::apply_tiny_3x3(X);
-  
-  if(status == false)  { return false; }
-  
-  X = symmatl(X);
-  
-  return true;
-  }
-
-
-
-template<typename eT>
-inline
-bool
-op_inv_spd_full::apply_tiny_4x4(Mat<eT>& X)
-  {
-  arma_extra_debug_sigprint();
-  
-  // NOTE: assuming matrix X is square sized
-  // NOTE: assuming matrix X is symmetric
-  // NOTE: assuming matrix X is real
-  
-  Mat<eT> Y(4, 4, arma_nozeros_indicator());
-  
-  arrayops::copy(Y.memptr(), X.memptr(), uword(4*4));
-  
-  const bool is_posdef = auxlib::chol_simple(Y);
-  
-  if(is_posdef == false)  { return false; }
-  
-  const bool status = op_inv_gen_full::apply_tiny_4x4(X);
-  
-  if(status == false)  { return false; }
-  
-  X = symmatl(X);
-  
-  return true;
-  }
-
-
-
 //
 
 
@@ -352,7 +273,7 @@ inline
 bool
 op_inv_spd_rcond::apply_direct(Mat<typename T1::elem_type>& out, op_inv_spd_state<typename T1::pod_type>& out_state, const Base<typename T1::elem_type,T1>& expr)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   typedef typename T1::elem_type eT;
   typedef typename T1::pod_type   T;
@@ -361,25 +282,25 @@ op_inv_spd_rcond::apply_direct(Mat<typename T1::elem_type>& out, op_inv_spd_stat
   out_state.size  = out.n_rows;
   out_state.rcond = T(0);
   
-  arma_debug_check( (out.is_square() == false), "inv_sympd(): given matrix must be square sized", [&](){ out.soft_reset(); } );
+  arma_conform_check( (out.is_square() == false), "inv_sympd(): given matrix must be square sized", [&](){ out.soft_reset(); } );
   
-  if((arma_config::debug) && (arma_config::warn_level > 0))
+  if((arma_config::check_conform) && (arma_config::warn_level > 0))
     {
     if(auxlib::rudimentary_sym_check(out) == false)
       {
-      if(is_cx<eT>::no )  { arma_debug_warn_level(1, "inv_sympd(): given matrix is not symmetric"); }
-      if(is_cx<eT>::yes)  { arma_debug_warn_level(1, "inv_sympd(): given matrix is not hermitian"); }
+      if(is_cx<eT>::no )  { arma_warn(1, "inv_sympd(): given matrix is not symmetric"); }
+      if(is_cx<eT>::yes)  { arma_warn(1, "inv_sympd(): given matrix is not hermitian"); }
       }
     else
     if((is_cx<eT>::yes) && (sym_helper::check_diag_imag(out) == false))
       {
-      arma_debug_warn_level(1, "inv_sympd(): imaginary components on diagonal are non-zero");
+      arma_warn(1, "inv_sympd(): imaginary components on diagonal are non-zero");
       }
     }
   
   if(is_op_diagmat<T1>::value || out.is_diagmat())
     {
-    arma_extra_debug_print("op_inv_spd_rcond: detected diagonal matrix");
+    arma_debug_print("op_inv_spd_rcond: detected diagonal matrix");
     
     out_state.is_diag = true;
     
@@ -417,7 +338,7 @@ op_inv_spd_rcond::apply_direct(Mat<typename T1::elem_type>& out, op_inv_spd_stat
   
   if(auxlib::crippled_lapack(out))
     {
-    arma_extra_debug_print("op_inv_spd_rcond: workaround for crippled lapack");
+    arma_debug_print("op_inv_spd_rcond: workaround for crippled lapack");
     
     Mat<eT> tmp = out;
     

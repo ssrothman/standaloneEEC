@@ -83,3 +83,122 @@ TEST_CASE("fn_conv_to4")
   }
 
 
+TEST_CASE("fn_conv_to_spmat_mat_different_eT")
+  {
+  sp_fmat A;
+  A.sprandu(10, 10, 0.3);
+
+  mat B = conv_to<mat>::from(A);
+
+  REQUIRE( B.n_rows == 10 );
+  REQUIRE( B.n_cols == 10 );
+  for (size_t c = 0; c < 10; ++c)
+    {
+    for (size_t r = 0; r < 10; ++r)
+      {
+      REQUIRE( (double) B(r, c) == Approx((double) A(r, c)).margin(1e-5) );
+      }
+    }
+
+  // And the other way...
+  B.randu(8, 8);
+  B(3, 3) = 0.0;
+  A = conv_to<sp_fmat>::from(B);
+
+  REQUIRE( A.n_rows == 8 );
+  REQUIRE( A.n_cols == 8 );
+  for (size_t c = 0; c < 8; ++c)
+    {
+    for (size_t r = 0; r < 8; ++r)
+      {
+      REQUIRE( (double) A(r, c) == Approx((double) B(r, c)).margin(1e-5) );
+      }
+    }
+  }
+
+
+TEST_CASE("fn_conv_to_complex_sparse_to_real")
+  {
+  sp_cx_mat A;
+  A.sprandu(10, 10, 0.3);
+
+  cx_mat B = conv_to<cx_mat>::from(A);
+
+  REQUIRE( B.n_rows == 10 );
+  REQUIRE( B.n_cols == 10 );
+  for (size_t c = 0; c < 10; ++c)
+    {
+    for (size_t r = 0; r < 10; ++r)
+      {
+      const std::complex<double> a_val = A(r, c);
+      const std::complex<double> b_val = B(r, c);
+      REQUIRE( a_val.real() == Approx(b_val.real()).margin(1e-5) );
+      REQUIRE( a_val.imag() == Approx(b_val.imag()).margin(1e-5) );
+      }
+    }
+  }
+
+
+TEST_CASE("fn_conv_to_complex_real_to_sparse")
+  {
+  cx_mat A;
+  A.randu(10, 10);
+
+  sp_cx_mat B = conv_to<sp_cx_mat>::from(A);
+
+  REQUIRE( B.n_rows == 10 );
+  REQUIRE( B.n_cols == 10 );
+  for (size_t c = 0; c < 10; ++c)
+    {
+    for (size_t r = 0; r < 10; ++r)
+      {
+      const std::complex<double> a_val = A(r, c);
+      const std::complex<double> b_val = B(r, c);
+      REQUIRE( a_val.real() == Approx(b_val.real()).margin(1e-5) );
+      REQUIRE( a_val.imag() == Approx(b_val.imag()).margin(1e-5) );
+      }
+    }
+  }
+
+
+TEST_CASE("fn_conv_to_complex_sparse_to_different_eT_real")
+  {
+  sp_cx_fmat A;
+  A.sprandu(10, 10, 0.3);
+
+  cx_mat B = conv_to<cx_mat>::from(A);
+
+  REQUIRE( B.n_rows == 10 );
+  REQUIRE( B.n_cols == 10 );
+  for (size_t c = 0; c < 10; ++c)
+    {
+    for (size_t r = 0; r < 10; ++r)
+      {
+      const std::complex<float> a_val = A(r, c);
+      const std::complex<double> b_val = B(r, c);
+      REQUIRE( (double) a_val.real() == Approx(b_val.real()).margin(1e-5) );
+      REQUIRE( (double) a_val.imag() == Approx(b_val.imag()).margin(1e-5) );
+      }
+    }
+  }
+
+
+TEST_CASE("fn_conv_to_complex_real_to_different_eT_sparse")
+  {
+  cx_mat A;
+  A.randu(10, 10);
+
+  sp_cx_fmat B = conv_to<sp_cx_fmat>::from(A);
+  REQUIRE( B.n_rows == 10 );
+  REQUIRE( B.n_cols == 10 );
+  for (size_t c = 0; c < 10; ++c)
+    {
+    for (size_t r = 0; r < 10; ++r)
+      {
+      const std::complex<double> a_val = A(r, c);
+      const std::complex<float> b_val = B(r, c);
+      REQUIRE( (float) a_val.real() == Approx(b_val.real()).margin(1e-5) );
+      REQUIRE( (float) a_val.imag() == Approx(b_val.imag()).margin(1e-5) );
+      }
+    }
+  }

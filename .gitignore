@@ -2,3 +2,4 @@
 *.so
 main
 __pycache__/*
+SRothman/armadillo-12.2.0/*

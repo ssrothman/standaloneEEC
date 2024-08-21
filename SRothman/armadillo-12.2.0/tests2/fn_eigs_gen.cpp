@@ -31,7 +31,7 @@ TEST_CASE("fn_eigs_gen_odd_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     sp_mat m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     mat d(m);
 
     // Eigendecompose, getting first 5 eigenvectors.
@@ -53,19 +53,22 @@ TEST_CASE("fn_eigs_gen_odd_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-4) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-4) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.1) );
       for(uword j = 0; j < n_rows; ++j)
@@ -90,7 +93,7 @@ TEST_CASE("fn_eigs_gen_even_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     sp_mat m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_mat z(5, 5);
     z.sprandu(5, 5, 0.5);
     m.submat(2, 2, 6, 6) += 5 * z;
@@ -115,19 +118,22 @@ TEST_CASE("fn_eigs_gen_even_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-4) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-4) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -152,7 +158,7 @@ TEST_CASE("fn_eigs_gen_even_opts_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     sp_mat m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_mat z(5, 5);
     z.sprandu(5, 5, 0.5);
     m.submat(2, 2, 6, 6) += 5 * z;
@@ -178,19 +184,22 @@ TEST_CASE("fn_eigs_gen_even_opts_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-4) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-4) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -216,7 +225,7 @@ TEST_CASE("fn_eigs_gen_odd_sigma_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     sp_mat m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_mat z(5, 5);
     z.sprandu(5, 5, 0.5);
     m.submat(2, 2, 6, 6) += 5 * z;
@@ -242,19 +251,22 @@ TEST_CASE("fn_eigs_gen_odd_sigma_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-4) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-4) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.1) );
       for(uword j = 0; j < n_rows; ++j)
@@ -280,7 +292,7 @@ TEST_CASE("fn_eigs_gen_even_sigma_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     sp_mat m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_mat z(5, 5);
     z.sprandu(5, 5, 0.5);
     m.submat(2, 2, 6, 6) += 5 * z;
@@ -306,19 +318,22 @@ TEST_CASE("fn_eigs_gen_even_sigma_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-4) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-4) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -344,7 +359,7 @@ TEST_CASE("fn_eigs_gen_even_sigma_opts_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     sp_mat m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_mat z(5, 5);
     z.sprandu(5, 5, 0.5);
     m.submat(2, 2, 6, 6) += 5 * z;
@@ -371,19 +386,22 @@ TEST_CASE("fn_eigs_gen_even_sigma_opts_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-4) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-4) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -408,7 +426,7 @@ TEST_CASE("fn_eigs_gen_odd_sm_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     sp_mat m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_mat z(5, 5);
     z.sprandu(5, 5, 0.5);
     m.submat(2, 2, 6, 6) += 5 * z;
@@ -434,19 +452,22 @@ TEST_CASE("fn_eigs_gen_odd_sm_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-4) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-4) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.1) );
       for(uword j = 0; j < n_rows; ++j)
@@ -471,7 +492,7 @@ TEST_CASE("fn_eigs_gen_even_sm_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     sp_mat m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_mat z(5, 5);
     z.sprandu(5, 5, 0.5);
     m.submat(2, 2, 6, 6) += 5 * z;
@@ -497,19 +518,22 @@ TEST_CASE("fn_eigs_gen_even_sm_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-4) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-4) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -534,7 +558,7 @@ TEST_CASE("fn_eigs_gen_even_sm_opts_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     sp_mat m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_mat z(5, 5);
     z.sprandu(5, 5, 0.5);
     m.submat(2, 2, 6, 6) += 5 * z;
@@ -561,19 +585,22 @@ TEST_CASE("fn_eigs_gen_even_sm_opts_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-4) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-4) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -598,7 +625,7 @@ TEST_CASE("fn_eigs_gen_odd_float_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     for(uword i = 0; i < n_rows; ++i)
       {
       m(i, i) += 5 * double(i) / double(n_rows);
@@ -624,19 +651,22 @@ TEST_CASE("fn_eigs_gen_odd_float_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.001) );
       for(uword j = 0; j < n_rows; ++j)
@@ -661,7 +691,7 @@ TEST_CASE("fn_eigs_gen_even_float_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     for(uword i = 0; i < n_rows; ++i)
       {
       m(i, i) += 5 * double(i) / double(n_rows);
@@ -687,19 +717,22 @@ TEST_CASE("fn_eigs_gen_even_float_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -724,7 +757,7 @@ TEST_CASE("fn_eigs_gen_even_float_opts_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     for(uword i = 0; i < n_rows; ++i)
       {
       m(i, i) += 5 * double(i) / double(n_rows);
@@ -751,19 +784,22 @@ TEST_CASE("fn_eigs_gen_even_float_opts_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -789,7 +825,7 @@ TEST_CASE("fn_eigs_gen_odd_float_sigma_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     for(uword i = 0; i < n_rows; ++i)
       {
       m(i, i) += 5 * double(i) / double(n_rows);
@@ -816,24 +852,27 @@ TEST_CASE("fn_eigs_gen_odd_float_sigma_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
 
-      REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.001) );
+      used(dense_eval) = 1;
+
+      REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.05) );
       for(uword j = 0; j < n_rows; ++j)
         {
-        REQUIRE( std::abs(sp_eigvec(j, i)) == Approx(std::abs(eigvec(j, dense_eval))).margin(0.01) );
+        REQUIRE( std::abs(sp_eigvec(j, i)) == Approx(std::abs(eigvec(j, dense_eval))).margin(0.05) );
         }
       }
     }
@@ -854,7 +893,7 @@ TEST_CASE("fn_eigs_gen_even_float_sigma_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     for(uword i = 0; i < n_rows; ++i)
       {
       m(i, i) += 5 * double(i) / double(n_rows);
@@ -881,24 +920,29 @@ TEST_CASE("fn_eigs_gen_even_float_sigma_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
 
-      REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
+      used(dense_eval) = 1;
+
+      used(dense_eval) = 1;
+
+      REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.05) );
       for(uword j = 0; j < n_rows; ++j)
         {
-        REQUIRE( std::abs(sp_eigvec(j, i)) == Approx(std::abs(eigvec(j, dense_eval))).margin(0.01) );
+        REQUIRE( std::abs(sp_eigvec(j, i)) == Approx(std::abs(eigvec(j, dense_eval))).margin(0.05) );
         }
       }
     }
@@ -919,7 +963,7 @@ TEST_CASE("fn_eigs_gen_even_float_sigma_opts_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     for(uword i = 0; i < n_rows; ++i)
       {
       m(i, i) += 5 * double(i) / double(n_rows);
@@ -947,24 +991,27 @@ TEST_CASE("fn_eigs_gen_even_float_sigma_opts_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
 
-      REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
+      used(dense_eval) = 1;
+
+      REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.02) );
       for(uword j = 0; j < n_rows; ++j)
         {
-        REQUIRE( std::abs(sp_eigvec(j, i)) == Approx(std::abs(eigvec(j, dense_eval))).margin(0.01) );
+        REQUIRE( std::abs(sp_eigvec(j, i)) == Approx(std::abs(eigvec(j, dense_eval))).margin(0.02) );
         }
       }
     }
@@ -984,7 +1031,7 @@ TEST_CASE("fn_eigs_gen_odd_float_sm_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     for(uword i = 0; i < n_rows; ++i)
       {
       m(i, i) += 5 * double(i) / double(n_rows);
@@ -1011,19 +1058,22 @@ TEST_CASE("fn_eigs_gen_odd_float_sm_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.001) );
       for(uword j = 0; j < n_rows; ++j)
@@ -1048,7 +1098,7 @@ TEST_CASE("fn_eigs_gen_even_float_sm_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     for(uword i = 0; i < n_rows; ++i)
       {
       m(i, i) += 5 * double(i) / double(n_rows);
@@ -1075,19 +1125,22 @@ TEST_CASE("fn_eigs_gen_even_float_sm_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -1112,7 +1165,7 @@ TEST_CASE("fn_eigs_gen_even_float_sm_opts_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     for(uword i = 0; i < n_rows; ++i)
       {
       m(i, i) += 5 * double(i) / double(n_rows);
@@ -1140,19 +1193,22 @@ TEST_CASE("fn_eigs_gen_even_float_sm_opts_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -1177,7 +1233,7 @@ TEST_CASE("fn_eigs_gen_odd_complex_float_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     Mat<cx_float> d(m);
 
     // Eigendecompose, getting first 5 eigenvectors.
@@ -1199,19 +1255,22 @@ TEST_CASE("fn_eigs_gen_odd_complex_float_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -1236,7 +1295,7 @@ TEST_CASE("fn_eigs_gen_even_complex_float_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     Mat<cx_float> d(m);
 
     // Eigendecompose, getting first 8 eigenvectors.
@@ -1258,19 +1317,22 @@ TEST_CASE("fn_eigs_gen_even_complex_float_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -1295,7 +1357,7 @@ TEST_CASE("fn_eigs_gen_even_complex_float_opts_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     Mat<cx_float> d(m);
 
     // Eigendecompose, getting first 8 eigenvectors.
@@ -1318,19 +1380,22 @@ TEST_CASE("fn_eigs_gen_even_complex_float_opts_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -1356,7 +1421,7 @@ TEST_CASE("fn_eigs_gen_odd_complex_float_sigma_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_cx_fmat z(5, 5);
     z.sprandu(5, 5, 0.5);
     m.submat(2, 2, 6, 6) += 5 * z;
@@ -1382,19 +1447,22 @@ TEST_CASE("fn_eigs_gen_odd_complex_float_sigma_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -1420,7 +1488,7 @@ TEST_CASE("fn_eigs_gen_even_complex_float_sigma_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_cx_fmat z(8, 8);
     z.sprandu(8, 8, 0.5);
     m.submat(2, 2, 9, 9) += 8 * z;
@@ -1446,24 +1514,27 @@ TEST_CASE("fn_eigs_gen_even_complex_float_sigma_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
 
-      REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
+      used(dense_eval) = 1;
+
+      REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.02) );
       for(uword j = 0; j < n_rows; ++j)
         {
-        REQUIRE( std::abs(sp_eigvec(j, i)) == Approx(std::abs(eigvec(j, dense_eval))).margin(0.01) );
+        REQUIRE( std::abs(sp_eigvec(j, i)) == Approx(std::abs(eigvec(j, dense_eval))).margin(0.02) );
         }
       }
     }
@@ -1484,7 +1555,7 @@ TEST_CASE("fn_eigs_gen_even_complex_float_sigma_opts_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_cx_fmat z(8, 8);
     z.sprandu(8, 8, 0.5);
     m.submat(2, 2, 9, 9) += 8 * z;
@@ -1511,19 +1582,22 @@ TEST_CASE("fn_eigs_gen_even_complex_float_sigma_opts_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -1548,7 +1622,7 @@ TEST_CASE("fn_eigs_gen_odd_complex_float_sm_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_cx_fmat z(5, 5);
     z.sprandu(5, 5, 0.5);
     m.submat(2, 2, 6, 6) += 5 * z;
@@ -1574,19 +1648,22 @@ TEST_CASE("fn_eigs_gen_odd_complex_float_sm_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -1611,7 +1688,7 @@ TEST_CASE("fn_eigs_gen_even_complex_float_sm_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_cx_fmat z(8, 8);
     z.sprandu(8, 8, 0.5);
     m.submat(2, 2, 9, 9) += 8 * z;
@@ -1637,24 +1714,27 @@ TEST_CASE("fn_eigs_gen_even_complex_float_sm_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
 
-      REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
+      used(dense_eval) = 1;
+
+      REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.02) );
       for(uword j = 0; j < n_rows; ++j)
         {
-        REQUIRE( std::abs(sp_eigvec(j, i)) == Approx(std::abs(eigvec(j, dense_eval))).margin(0.01) );
+        REQUIRE( std::abs(sp_eigvec(j, i)) == Approx(std::abs(eigvec(j, dense_eval))).margin(0.02) );
         }
       }
     }
@@ -1674,7 +1754,7 @@ TEST_CASE("fn_eigs_gen_even_complex_float_sm_opts_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_float> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_cx_fmat z(8, 8);
     z.sprandu(8, 8, 0.5);
     m.submat(2, 2, 9, 9) += 8 * z;
@@ -1701,19 +1781,22 @@ TEST_CASE("fn_eigs_gen_even_complex_float_sm_opts_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_float(sp_eigval(i)).real() - eigval(k).real()) < 0.001) &&
-            (std::abs(cx_float(sp_eigval(i)).imag() - eigval(k).imag()) < 0.001) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -1738,7 +1821,7 @@ TEST_CASE("eigs_gen_odd_complex_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_double> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     Mat<cx_double> d(m);
 
     // Eigendecompose, getting first 5 eigenvectors.
@@ -1760,19 +1843,22 @@ TEST_CASE("eigs_gen_odd_complex_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-10) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-10) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(size_t j = 0; j < n_rows; ++j)
@@ -1797,7 +1883,7 @@ TEST_CASE("fn_eigs_gen_even_complex_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_double> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     Mat<cx_double> d(m);
 
     // Eigendecompose, getting first 6 eigenvectors.
@@ -1819,19 +1905,22 @@ TEST_CASE("fn_eigs_gen_even_complex_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-10) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-10) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -1856,7 +1945,7 @@ TEST_CASE("fn_eigs_gen_even_complex_opts_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_double> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     Mat<cx_double> d(m);
 
     // Eigendecompose, getting first 6 eigenvectors.
@@ -1879,19 +1968,22 @@ TEST_CASE("fn_eigs_gen_even_complex_opts_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-10) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-10) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -1917,7 +2009,7 @@ TEST_CASE("eigs_gen_odd_complex_sigma_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_double> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_cx_mat z(5, 5);
     z.sprandu(5, 5, 0.5);
     m.submat(2, 2, 6, 6) += 5 * z;
@@ -1943,19 +2035,22 @@ TEST_CASE("eigs_gen_odd_complex_sigma_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-10) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-10) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(size_t j = 0; j < n_rows; ++j)
@@ -1981,7 +2076,7 @@ TEST_CASE("fn_eigs_gen_even_complex_sigma_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_double> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_cx_mat z(8, 8);
     z.sprandu(8, 8, 0.5);
     m.submat(2, 2, 9, 9) += 8 * z;
@@ -2007,19 +2102,22 @@ TEST_CASE("fn_eigs_gen_even_complex_sigma_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-10) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-10) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -2045,7 +2143,7 @@ TEST_CASE("fn_eigs_gen_even_complex_sigma_opts_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_double> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     sp_cx_mat z(8, 8);
     z.sprandu(8, 8, 0.5);
     m.submat(2, 2, 9, 9) += 8 * z;
@@ -2072,19 +2170,22 @@ TEST_CASE("fn_eigs_gen_even_complex_sigma_opts_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-10) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-10) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -2109,7 +2210,7 @@ TEST_CASE("eigs_gen_odd_complex_sm_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_double> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     m += cx_double(0.001,0)*speye< SpMat<cx_double> >(n_rows, n_rows);
     Mat<cx_double> d(m);
 
@@ -2132,19 +2233,22 @@ TEST_CASE("eigs_gen_odd_complex_sm_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-10) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-10) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(size_t j = 0; j < n_rows; ++j)
@@ -2169,7 +2273,7 @@ TEST_CASE("fn_eigs_gen_even_complex_sm_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_double> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     m += cx_double(0.001,0)*speye< SpMat<cx_double> >(n_rows, n_rows);
     Mat<cx_double> d(m);
 
@@ -2192,19 +2296,22 @@ TEST_CASE("fn_eigs_gen_even_complex_sm_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-10) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-10) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)
@@ -2229,7 +2336,7 @@ TEST_CASE("fn_eigs_gen_even_complex_sm_opts_test")
   for(uword trial=0; trial < n_trials; ++trial)
     {
     SpMat<cx_double> m;
-    m.sprandu(n_rows, n_rows, 0.3);
+    m.sprandu(n_rows, n_rows, 0.5);
     m += cx_double(0.001,0)*speye< SpMat<cx_double> >(n_rows, n_rows);
     Mat<cx_double> d(m);
 
@@ -2253,19 +2360,22 @@ TEST_CASE("fn_eigs_gen_even_complex_sm_opts_test")
       // Sorting these is difficult.
       // Find which one is the likely dense eigenvalue.
       uword dense_eval = n_rows + 1;
+      double dist = std::numeric_limits<double>::max();
       for(uword k = 0; k < n_rows; ++k)
         {
-        if ((std::abs(cx_double(sp_eigval(i)).real() - eigval(k).real()) < 1e-10) &&
-            (std::abs(cx_double(sp_eigval(i)).imag() - eigval(k).imag()) < 1e-10) &&
-            (used(k) == 0))
+        const double k_vec_dist = accu(abs(abs(sp_eigvec.col(i)) - abs(eigvec.col(k))));
+        const double k_val_dist = std::abs(std::abs(sp_eigval(i)) - std::abs(eigval(k)));
+        const double k_dist = k_val_dist * k_vec_dist;
+        if (k_dist <= dist && used(k) == 0)
           {
           dense_eval = k;
-          used(k) = 1;
-          break;
+          dist = k_dist;
           }
         }
 
       REQUIRE( dense_eval != n_rows + 1 );
+
+      used(dense_eval) = 1;
 
       REQUIRE( std::abs(sp_eigval(i)) == Approx(std::abs(eigval(dense_eval))).margin(0.01) );
       for(uword j = 0; j < n_rows; ++j)

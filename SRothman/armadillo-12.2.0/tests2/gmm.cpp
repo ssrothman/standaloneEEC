@@ -30,7 +30,7 @@ TEST_CASE("gmm_full_1")
   // Higher dimensionality gives us a greater chance of having separated Gaussians.
   const uword dims      = 8;
   const uword gaussians = 3;
-  const uword maxTrials = 3;
+  const uword maxTrials = 5;
   
   // Generate dataset.
   mat data(dims, 500, fill::zeros);

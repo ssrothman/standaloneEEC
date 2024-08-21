@@ -268,7 +268,7 @@ inline
 file_type
 diskio::guess_file_type(std::istream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   return diskio::guess_file_type_internal(f);
   }
@@ -279,7 +279,7 @@ inline
 file_type
 diskio::guess_file_type_internal(std::istream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   f.clear();
   const std::fstream::pos_type pos1 = f.tellg();
@@ -419,6 +419,25 @@ diskio::is_readable(const std::string& name)
 
 
 
+inline
+void
+diskio::sanitise_token(std::string& token)
+  {
+  // remove spaces, tabs, carriage returns
+  
+  if(token.length() == 0)  { return; }
+  
+  const char c_front = token.front();
+  const char c_back  = token.back();
+  
+  if( (c_front == ' ') || (c_front == '\t') || (c_front == '\r') || (c_back == ' ') || (c_back == '\t') || (c_back == '\r') )
+    {
+    token.erase(std::remove_if(token.begin(), token.end(), [](char c) { return ((c == ' ') || (c == '\t') || (c == '\r')); }), token.end());
+    }
+  }
+
+
+
 template<typename eT>
 inline
 bool
@@ -426,9 +445,9 @@ diskio::convert_token(eT& val, const std::string& token)
   {
   const size_t N = size_t(token.length());
   
-  if(N == 0)  { val = eT(0); return true; }
-  
   const char* str = token.c_str();
+  
+  if( (N == 0) || ((N == 1) && (str[0] == '0')) )  { val = eT(0); return true; }
   
   if( (N == 3) || (N == 4) )
     {
@@ -660,11 +679,13 @@ inline
 bool
 diskio::save_raw_ascii(const Mat<eT>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
-  std::fstream f(tmp_name, std::fstream::out);
+  std::ofstream f;
+  
+  (arma_config::text_as_binary) ? f.open(tmp_name, std::fstream::binary) : f.open(tmp_name);
   
   bool save_okay = f.is_open();
   
@@ -690,7 +711,7 @@ inline
 bool
 diskio::save_raw_ascii(const Mat<eT>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const arma_ostream_state stream_state(f);
   
@@ -725,7 +746,7 @@ inline
 bool
 diskio::save_raw_binary(const Mat<eT>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
@@ -753,7 +774,7 @@ inline
 bool
 diskio::save_raw_binary(const Mat<eT>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   f.write( reinterpret_cast<const char*>(x.mem), std::streamsize(x.n_elem*sizeof(eT)) );
   
@@ -769,11 +790,13 @@ inline
 bool
 diskio::save_arma_ascii(const Mat<eT>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
-  std::ofstream f(tmp_name);
+  std::ofstream f;
+  
+  (arma_config::text_as_binary) ? f.open(tmp_name, std::fstream::binary) : f.open(tmp_name);
   
   bool save_okay = f.is_open();
   
@@ -799,7 +822,7 @@ inline
 bool
 diskio::save_arma_ascii(const Mat<eT>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const arma_ostream_state stream_state(f);
   
@@ -837,11 +860,13 @@ inline
 bool
 diskio::save_csv_ascii(const Mat<eT>& x, const std::string& final_name, const field<std::string>& header, const bool with_header, const char separator)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
-  std::ofstream f(tmp_name);
+  std::ofstream f;
+  
+  (arma_config::text_as_binary) ? f.open(tmp_name, std::fstream::binary) : f.open(tmp_name);
   
   bool save_okay = f.is_open();
   
@@ -849,7 +874,7 @@ diskio::save_csv_ascii(const Mat<eT>& x, const std::string& final_name, const fi
   
   if(with_header)
     {
-    arma_extra_debug_print("diskio::save_csv_ascii(): writing header");
+    arma_debug_print("diskio::save_csv_ascii(): writing header");
     
     for(uword i=0; i < header.n_elem; ++i)
       {
@@ -881,7 +906,7 @@ inline
 bool
 diskio::save_csv_ascii(const Mat<eT>& x, std::ostream& f, const char separator)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const arma_ostream_state stream_state(f);
   
@@ -890,11 +915,18 @@ diskio::save_csv_ascii(const Mat<eT>& x, std::ostream& f, const char separator)
   uword x_n_rows = x.n_rows;
   uword x_n_cols = x.n_cols;
   
+  const eT eT_int_lowest = eT(std::numeric_limits<int>::lowest());
+  const eT eT_int_max    = eT(std::numeric_limits<int>::max());
+  
   for(uword row=0; row < x_n_rows; ++row)
     {
     for(uword col=0; col < x_n_cols; ++col)
       {
-      arma_ostream::raw_print_elem(f, x.at(row,col));
+      const eT val = x.at(row,col);
+      
+      const bool is_real_int = (is_real<eT>::yes) && arma_isfinite(val) && (val > eT_int_lowest) && (val < eT_int_max) && (eT(int(val)) == val);
+      
+      (is_real_int) ? arma_ostream::raw_print_elem(f, int(val)) : arma_ostream::raw_print_elem(f, val);
       
       if( col < (x_n_cols-1) )  { f.put(separator); }
       }
@@ -917,13 +949,16 @@ inline
 bool
 diskio::save_csv_ascii(const Mat< std::complex<T> >& x, std::ostream& f, const char separator)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   typedef typename std::complex<T> eT;
   
   const arma_ostream_state stream_state(f);
   
   diskio::prepare_stream<eT>(f);
+  
+  const T T_int_lowest = T(std::numeric_limits<int>::lowest());
+  const T T_int_max    = T(std::numeric_limits<int>::max());
   
   uword x_n_rows = x.n_rows;
   uword x_n_cols = x.n_cols;
@@ -934,14 +969,20 @@ diskio::save_csv_ascii(const Mat< std::complex<T> >& x, std::ostream& f, const c
       {
       const eT& val = x.at(row,col);
       
-      const T    tmp_r     = std::real(val);
-      const T    tmp_i     = std::imag(val);
-      const T    tmp_i_abs = (tmp_i < T(0)) ? T(-tmp_i) : T(tmp_i);
-      const char tmp_sign  = (tmp_i < T(0)) ? char('-') : char('+');
+      const T    val_r = std::real(val);
+      const T    val_i = std::imag(val);
+      const T    abs_i = (val_i < T(0)) ? T(-val_i) : T(val_i);
+      const char sgn_i = (val_i < T(0)) ? char('-') : char('+');
       
-      arma_ostream::raw_print_elem(f, tmp_r    );
-      f.put(tmp_sign);
-      arma_ostream::raw_print_elem(f, tmp_i_abs);
+      const bool val_r_is_real_int = (is_real<T>::yes) && arma_isfinite(val_r) && (val_r > T_int_lowest) && (val_r < T_int_max) && (T(int(val_r)) == val_r);
+      const bool abs_i_is_real_int = (is_real<T>::yes) && arma_isfinite(abs_i)                           && (abs_i < T_int_max) && (T(int(abs_i)) == abs_i);
+      
+      (val_r_is_real_int) ? arma_ostream::raw_print_elem(f, int(val_r)) : arma_ostream::raw_print_elem(f, val_r);
+      
+      f.put(sgn_i);
+      
+      (abs_i_is_real_int) ? arma_ostream::raw_print_elem(f, int(abs_i)) : arma_ostream::raw_print_elem(f, abs_i);
+      
       f.put('i');
       
       if( col < (x_n_cols-1) )  { f.put(separator); }
@@ -964,11 +1005,13 @@ inline
 bool
 diskio::save_coord_ascii(const Mat<eT>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
-  std::ofstream f(tmp_name);
+  std::ofstream f;
+  
+  (arma_config::text_as_binary) ? f.open(tmp_name, std::fstream::binary) : f.open(tmp_name);
   
   bool save_okay = f.is_open();
   
@@ -992,24 +1035,34 @@ inline
 bool
 diskio::save_coord_ascii(const Mat<eT>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const arma_ostream_state stream_state(f);
   
   diskio::prepare_stream<eT>(f);
+  
+  const eT eT_zero       = eT(0);
+  const eT eT_int_lowest = eT(std::numeric_limits<int>::lowest());
+  const eT eT_int_max    = eT(std::numeric_limits<int>::max());
   
   for(uword col=0; col < x.n_cols; ++col)
   for(uword row=0; row < x.n_rows; ++row)
     {
     const eT val = x.at(row,col);
     
-    if(val != eT(0))
-      {
-      f << row << ' ' << col << ' ' << val << '\n';
-      }
+    if(val == eT_zero)  { continue; }
+    
+    f << row;  f.put(' ');
+    f << col;  f.put(' ');
+    
+    const bool is_real_int = (is_real<eT>::yes) && arma_isfinite(val) && (val > eT_int_lowest) && (val < eT_int_max) && (eT(int(val)) == val);
+    
+    (is_real_int) ? arma_ostream::raw_print_elem(f, int(val)) : arma_ostream::raw_print_elem(f, val);
+    
+    f.put('\n');
     }
   
-  // make sure it's possible to figure out the matrix size later
+  // make sure it's possible to determine the matrix size
   if( (x.n_rows > 0) && (x.n_cols > 0) )
     {
     const uword max_row = (x.n_rows > 0) ? x.n_rows-1 : 0;
@@ -1035,7 +1088,7 @@ inline
 bool
 diskio::save_coord_ascii(const Mat< std::complex<T> >& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   typedef typename std::complex<T> eT;
   
@@ -1043,20 +1096,36 @@ diskio::save_coord_ascii(const Mat< std::complex<T> >& x, std::ostream& f)
   
   diskio::prepare_stream<eT>(f);
   
-  const eT eT_zero = eT(0);
+  const eT eT_zero       = eT(0);
+  const  T  T_int_lowest = T(std::numeric_limits<int>::lowest());
+  const  T  T_int_max    = T(std::numeric_limits<int>::max());
   
   for(uword col=0; col < x.n_cols; ++col)
   for(uword row=0; row < x.n_rows; ++row)
     {
-    const eT val = x.at(row,col);
+    const eT& val = x.at(row,col);
     
-    if(val != eT_zero)
-      {
-      f << row << ' ' << col << ' ' << val.real() << ' ' << val.imag() << '\n';
-      }
+    if(val == eT_zero)  { continue; }
+    
+    f << row;  f.put(' ');
+    f << col;  f.put(' ');
+    
+    const T val_r = std::real(val);
+    const T val_i = std::imag(val);
+    
+    const bool val_r_is_real_int = (is_real<T>::yes) && arma_isfinite(val_r) && (val_r > T_int_lowest) && (val_r < T_int_max) && (T(int(val_r)) == val_r);
+    const bool val_i_is_real_int = (is_real<T>::yes) && arma_isfinite(val_i) && (val_i > T_int_lowest) && (val_i < T_int_max) && (T(int(val_i)) == val_i);
+    
+    (val_r_is_real_int) ? arma_ostream::raw_print_elem(f, int(val_r)) : arma_ostream::raw_print_elem(f, val_r);
+    
+    f.put(' ');
+    
+    (val_i_is_real_int) ? arma_ostream::raw_print_elem(f, int(val_i)) : arma_ostream::raw_print_elem(f, val_i);
+    
+    f.put('\n');
     }
   
-  // make sure it's possible to figure out the matrix size later
+  // make sure it's possible to determine the matrix size
   if( (x.n_rows > 0) && (x.n_cols > 0) )
     {
     const uword max_row = (x.n_rows > 0) ? x.n_rows-1 : 0;
@@ -1084,7 +1153,7 @@ inline
 bool
 diskio::save_arma_binary(const Mat<eT>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
@@ -1114,7 +1183,7 @@ inline
 bool
 diskio::save_arma_binary(const Mat<eT>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   f << diskio::gen_bin_header(x) << '\n';
   f << x.n_rows << ' ' << x.n_cols << '\n';
@@ -1132,7 +1201,7 @@ inline
 bool
 diskio::save_pgm_binary(const Mat<eT>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
@@ -1155,18 +1224,13 @@ diskio::save_pgm_binary(const Mat<eT>& x, const std::string& final_name)
 
 
 
-//
-// TODO:
-// add functionality to save the image in a normalised format,
-// ie. scaled so that every value falls in the [0,255] range.
-
 //! Save a matrix as a PGM greyscale image
 template<typename eT>
 inline
 bool
 diskio::save_pgm_binary(const Mat<eT>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   f << "P5" << '\n';
   f << x.n_cols << ' ' << x.n_rows << '\n';
@@ -1197,7 +1261,7 @@ inline
 bool
 diskio::save_pgm_binary(const Mat< std::complex<T> >& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const uchar_mat tmp = conv_to<uchar_mat>::from(x);
   
@@ -1212,7 +1276,7 @@ inline
 bool
 diskio::save_pgm_binary(const Mat< std::complex<T> >& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const uchar_mat tmp = conv_to<uchar_mat>::from(x);
   
@@ -1227,7 +1291,7 @@ inline
 bool 
 diskio::save_hdf5_binary(const Mat<eT>& x, const hdf5_name& spec, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   #if defined(ARMA_USE_HDF5)
     {
@@ -1255,8 +1319,8 @@ diskio::save_hdf5_binary(const Mat<eT>& x, const hdf5_name& spec, std::string& e
     hid_t dataspace = H5Screate_simple(2, dims, NULL);   // treat the matrix as a 2d array dataspace
     hid_t datatype  = hdf5_misc::get_hdf5_type<eT>();
     
-    // If this returned something invalid, well, it's time to crash.
-    arma_check(datatype == -1, "Mat::save(): unknown datatype for HDF5");
+    // fail if we can't handle the datatype
+    if(datatype == -1)  { err_msg = "unknown datatype for HDF5"; return false; }
     
     // MATLAB forces the users to specify a name at save time for HDF5;
     // Octave will use the default of 'dataset' unless otherwise specified.
@@ -1302,7 +1366,7 @@ diskio::save_hdf5_binary(const Mat<eT>& x, const hdf5_name& spec, std::string& e
       {
       save_okay = false;
       
-      err_msg = "couldn't create dataset";
+      err_msg = "failed to create dataset";
       }
     else
       {
@@ -1343,10 +1407,11 @@ inline
 bool
 diskio::load_raw_ascii(Mat<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
-  std::fstream f;
-  f.open(name, std::fstream::in);
+  std::ifstream f;
+  
+  (arma_config::text_as_binary) ? f.open(name, std::fstream::binary) : f.open(name);
   
   bool load_okay = f.is_open();
   
@@ -1369,7 +1434,7 @@ inline
 bool
 diskio::load_raw_ascii(Mat<eT>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   bool load_okay = f.good();
   
@@ -1426,6 +1491,8 @@ diskio::load_raw_ascii(Mat<eT>& x, std::istream& f, std::string& err_msg)
     f.clear();
     f.seekg(pos1);
     
+    if(f.fail() || (f.tellg() != pos1))  { err_msg = "seek failure"; return false; }
+    
     try { x.set_size(f_n_rows, f_n_cols); } catch(...) { err_msg = "not enough memory"; return false; }
     
     for(uword row=0; ((row < x.n_rows) && load_okay); ++row)
@@ -1436,7 +1503,7 @@ diskio::load_raw_ascii(Mat<eT>& x, std::istream& f, std::string& err_msg)
       if(diskio::convert_token(x.at(row,col), token) == false)
         {
         load_okay = false;
-        err_msg = "couldn't interpret data";
+        err_msg = "data interpretation failure";
         }
       }
     }
@@ -1458,7 +1525,7 @@ inline
 bool
 diskio::load_raw_binary(Mat<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::ifstream f;
   f.open(name, std::fstream::binary);
@@ -1481,7 +1548,7 @@ inline
 bool
 diskio::load_raw_binary(Mat<eT>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   f.clear();
   const std::streampos pos1 = f.tellg();
@@ -1498,10 +1565,12 @@ diskio::load_raw_binary(Mat<eT>& x, std::istream& f, std::string& err_msg)
   //f.seekg(0, ios::beg);
   f.seekg(pos1);
   
+  if(f.fail() || (f.tellg() != pos1))  { err_msg = "seek failure"; return false; }
+  
   try { x.set_size(N / uword(sizeof(eT)), 1); } catch(...) { err_msg = "not enough memory"; return false; }
   
   f.clear();
-  f.read( reinterpret_cast<char *>(x.memptr()), std::streamsize(x.n_elem * uword(sizeof(eT))) );
+  f.read( reinterpret_cast<char*>(x.memptr()), std::streamsize(x.n_elem * uword(sizeof(eT))) );
   
   return f.good();
   }
@@ -1515,9 +1584,11 @@ inline
 bool
 diskio::load_arma_ascii(Mat<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
-  std::ifstream f(name);
+  std::ifstream f;
+  
+  (arma_config::text_as_binary) ? f.open(name, std::fstream::binary) : f.open(name);
   
   bool load_okay = f.is_open();
   
@@ -1539,7 +1610,7 @@ inline
 bool
 diskio::load_arma_ascii(Mat<eT>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::streampos pos = f.tellg();
   
@@ -1618,10 +1689,11 @@ inline
 bool
 diskio::load_csv_ascii(Mat<eT>& x, const std::string& name, std::string& err_msg, field<std::string>& header, const bool with_header, const char separator, const bool strict)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
-  std::fstream f;
-  f.open(name, std::fstream::in);
+  std::ifstream f;
+  
+  (arma_config::text_as_binary) ? f.open(name, std::fstream::binary) : f.open(name);
   
   bool load_okay = f.is_open();
   
@@ -1629,7 +1701,7 @@ diskio::load_csv_ascii(Mat<eT>& x, const std::string& name, std::string& err_msg
   
   if(with_header)
     {
-    arma_extra_debug_print("diskio::load_csv_ascii(): reading header");
+    arma_debug_print("diskio::load_csv_ascii(): reading header");
     
     std::string              header_line;
     std::stringstream        header_stream;
@@ -1651,7 +1723,11 @@ diskio::load_csv_ascii(Mat<eT>& x, const std::string& name, std::string& err_msg
       while(header_stream.good())
         {
         std::getline(header_stream, token, separator);
+        
+        diskio::sanitise_token(token);
+        
         ++header_n_tokens;
+        
         header_tokens.push_back(token);
         }
       
@@ -1686,7 +1762,7 @@ inline
 bool
 diskio::load_csv_ascii(Mat<eT>& x, std::istream& f, std::string& err_msg, const char separator, const bool strict)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   // TODO: replace with more efficient implementation
   
@@ -1730,6 +1806,8 @@ diskio::load_csv_ascii(Mat<eT>& x, std::istream& f, std::string& err_msg, const 
   
   f.clear();
   f.seekg(pos1);
+  
+  if(f.fail() || (f.tellg() != pos1))  { err_msg = "seek failure"; return false; }
   
   try { x.zeros(f_n_rows, f_n_cols); } catch(...) { err_msg = "not enough memory"; return false; }
   
@@ -1839,7 +1917,7 @@ inline
 bool
 diskio::load_csv_ascii(Mat< std::complex<T> >& x, std::istream& f, std::string& err_msg, const char separator, const bool strict)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   // TODO: replace with more efficient implementation
   
@@ -1884,6 +1962,8 @@ diskio::load_csv_ascii(Mat< std::complex<T> >& x, std::istream& f, std::string& 
   f.clear();
   f.seekg(pos1);
   
+  if(f.fail() || (f.tellg() != pos1))  { err_msg = "seek failure"; return false; }
+  
   try { x.zeros(f_n_rows, f_n_cols); } catch(...) { err_msg = "not enough memory"; return false; }
   
   if(strict)  { x.fill(Datum< std::complex<T> >::nan); }   // take into account that each row may have a unique number of columns
@@ -1908,17 +1988,7 @@ diskio::load_csv_ascii(Mat< std::complex<T> >& x, std::istream& f, std::string& 
       {
       std::getline(line_stream, token, separator);
       
-      // remove spaces and tabs
-      if(token.length() > 0)
-        {
-        const char c_front = token.front();
-        const char c_back  = token.back();
-        
-        if( (c_front == ' ') || (c_front == '\t') || (c_back == ' ') || (c_back == '\t') )
-          {
-          token.erase(std::remove_if(token.begin(), token.end(), [](char c) { return ((c == ' ') || (c == '\t')); }), token.end());
-          }
-        }
+      diskio::sanitise_token(token);
       
       const size_t token_len = size_t( token.length() );
       
@@ -2084,10 +2154,11 @@ inline
 bool
 diskio::load_coord_ascii(Mat<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
-  std::fstream f;
-  f.open(name, std::fstream::in);
+  std::ifstream f;
+  
+  (arma_config::text_as_binary) ? f.open(name, std::fstream::binary) : f.open(name);
   
   bool load_okay = f.is_open();
   
@@ -2111,7 +2182,7 @@ inline
 bool
 diskio::load_coord_ascii(Mat<eT>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   if(f.good() == false)  { return false; }
   
@@ -2162,6 +2233,8 @@ diskio::load_coord_ascii(Mat<eT>& x, std::istream& f, std::string& err_msg)
   f.clear();
   f.seekg(pos1);
   
+  if(f.fail() || (f.tellg() != pos1))  { err_msg = "seek failure"; return false; }
+  
   try
     {
     Mat<eT> tmp(f_n_rows, f_n_cols, arma_zeros_indicator());
@@ -2185,10 +2258,7 @@ diskio::load_coord_ascii(Mat<eT>& x, std::istream& f, std::string& err_msg)
       
       line_stream >> token;
       
-      if(line_stream.fail() == false)
-        {
-        diskio::convert_token( val, token );
-        }
+      if(line_stream.fail() == false)  { diskio::convert_token( val, token ); }
       
       if(val != eT(0))  { tmp(line_row,line_col) = val; }
       }
@@ -2211,7 +2281,7 @@ inline
 bool
 diskio::load_coord_ascii(Mat< std::complex<T> >& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   if(f.good() == false)  { return false; }
   
@@ -2263,6 +2333,8 @@ diskio::load_coord_ascii(Mat< std::complex<T> >& x, std::istream& f, std::string
   f.clear();
   f.seekg(pos1);
   
+  if(f.fail() || (f.tellg() != pos1))  { err_msg = "seek failure"; return false; }
+  
   try
     {
     Mat< std::complex<T> > tmp(f_n_rows, f_n_cols, arma_zeros_indicator());
@@ -2287,18 +2359,11 @@ diskio::load_coord_ascii(Mat< std::complex<T> >& x, std::istream& f, std::string
       
       line_stream >> token_real;
       
-      if(line_stream.fail() == false)
-        {
-        diskio::convert_token( val_real, token_real );
-        }
-      
+      if(line_stream.fail() == false)  { diskio::convert_token( val_real, token_real ); }
       
       line_stream >> token_imag;
       
-      if(line_stream.fail() == false)
-        {
-        diskio::convert_token( val_imag, token_imag );
-        }
+      if(line_stream.fail() == false)  { diskio::convert_token( val_imag, token_imag ); }
       
       if( (val_real != T(0)) || (val_imag != T(0)) )
         {
@@ -2326,7 +2391,7 @@ inline
 bool
 diskio::load_arma_binary(Mat<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::ifstream f;
   f.open(name, std::fstream::binary);
@@ -2349,7 +2414,7 @@ inline
 bool
 diskio::load_arma_binary(Mat<eT>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::streampos pos = f.tellg();
   
@@ -2370,7 +2435,7 @@ diskio::load_arma_binary(Mat<eT>& x, std::istream& f, std::string& err_msg)
     
     try { x.set_size(f_n_rows,f_n_cols); } catch(...) { err_msg = "not enough memory"; return false; }
     
-    f.read( reinterpret_cast<char *>(x.memptr()), std::streamsize(x.n_elem*sizeof(eT)) );
+    f.read( reinterpret_cast<char*>(x.memptr()), std::streamsize(x.n_elem*sizeof(eT)) );
     
     load_okay = f.good();
     }
@@ -2440,7 +2505,7 @@ inline
 bool
 diskio::load_pgm_binary(Mat<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::fstream f;
   f.open(name, std::fstream::in | std::fstream::binary);
@@ -2515,7 +2580,7 @@ diskio::load_pgm_binary(Mat<eT>& x, std::istream& f, std::string& err_msg)
         const uword n_elem = f_n_cols*f_n_rows;
         podarray<u16> tmp(n_elem);
         
-        f.read( reinterpret_cast<char *>(tmp.memptr()), std::streamsize(n_elem*2) );
+        f.read( reinterpret_cast<char*>(tmp.memptr()), std::streamsize(n_elem*2) );
         
         uword i = 0;
         
@@ -2552,7 +2617,7 @@ inline
 bool
 diskio::load_pgm_binary(Mat< std::complex<T> >& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   uchar_mat tmp;
   const bool load_okay = diskio::load_pgm_binary(tmp, name, err_msg);
@@ -2570,7 +2635,7 @@ inline
 bool
 diskio::load_pgm_binary(Mat< std::complex<T> >& x, std::istream& is, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   uchar_mat tmp;
   const bool load_okay = diskio::load_pgm_binary(tmp, is, err_msg);
@@ -2588,7 +2653,7 @@ inline
 bool
 diskio::load_hdf5_binary(Mat<eT>& x, const hdf5_name& spec, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   #if defined(ARMA_USE_HDF5)
     {
@@ -2712,7 +2777,7 @@ inline
 bool
 diskio::load_auto_detect(Mat<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   if(diskio::is_readable(name) == false)  { return false; }
   
@@ -2743,7 +2808,7 @@ inline
 bool
 diskio::load_auto_detect(Mat<eT>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const char* ARMA_MAT_TXT_str = "ARMA_MAT_TXT";
   const char* ARMA_MAT_BIN_str = "ARMA_MAT_BIN";
@@ -2824,11 +2889,13 @@ inline
 bool
 diskio::save_csv_ascii(const SpMat<eT>& x, const std::string& final_name, const field<std::string>& header, const bool with_header, const char separator)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
-  std::ofstream f(tmp_name);
+  std::ofstream f;
+  
+  (arma_config::text_as_binary) ? f.open(tmp_name, std::fstream::binary) : f.open(tmp_name);
   
   bool save_okay = f.is_open();
   
@@ -2836,7 +2903,7 @@ diskio::save_csv_ascii(const SpMat<eT>& x, const std::string& final_name, const 
   
   if(with_header)
     {
-    arma_extra_debug_print("diskio::save_csv_ascii(): writing header");
+    arma_debug_print("diskio::save_csv_ascii(): writing header");
     
     for(uword i=0; i < header.n_elem; ++i)
       {
@@ -2868,7 +2935,7 @@ inline
 bool
 diskio::save_csv_ascii(const SpMat<eT>& x, std::ostream& f, const char separator)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const arma_ostream_state stream_state(f);
   
@@ -2879,13 +2946,26 @@ diskio::save_csv_ascii(const SpMat<eT>& x, std::ostream& f, const char separator
   uword x_n_rows = x.n_rows;
   uword x_n_cols = x.n_cols;
   
+  const eT eT_zero       = eT(0);
+  const eT eT_int_lowest = eT(std::numeric_limits<int>::lowest());
+  const eT eT_int_max    = eT(std::numeric_limits<int>::max());
+  
   for(uword row=0; row < x_n_rows; ++row)
     {
     for(uword col=0; col < x_n_cols; ++col)
       {
       const eT val = x.at(row,col);
       
-      if(val != eT(0))  { arma_ostream::raw_print_elem(f, val); }
+      if(val == eT_zero)
+        {
+        f.put('0');
+        }
+      else
+        {
+        const bool is_real_int = (is_real<eT>::yes) && arma_isfinite(val) && (val > eT_int_lowest) && (val < eT_int_max) && (eT(int(val)) == val);
+        
+        (is_real_int) ? arma_ostream::raw_print_elem(f, int(val)) : arma_ostream::raw_print_elem(f, val);
+        }
       
       if( col < (x_n_cols-1) )  { f.put(separator); }
       }
@@ -2908,13 +2988,13 @@ inline
 bool
 diskio::save_csv_ascii(const SpMat< std::complex<T> >& x, std::ostream& f, const char separator)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   arma_ignore(x);
   arma_ignore(f);
   arma_ignore(separator);
   
-  arma_debug_warn_level(1, "saving complex sparse matrices as csv_ascii not yet implemented");
+  arma_warn(1, "saving complex sparse matrices as csv_ascii not yet implemented");
   
   return false;
   }
@@ -2927,11 +3007,13 @@ inline
 bool
 diskio::save_coord_ascii(const SpMat<eT>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
-  std::ofstream f(tmp_name);
+  std::ofstream f;
+  
+  (arma_config::text_as_binary) ? f.open(tmp_name, std::fstream::binary) : f.open(tmp_name);
   
   bool save_okay = f.is_open();
   
@@ -2956,24 +3038,34 @@ inline
 bool
 diskio::save_coord_ascii(const SpMat<eT>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const arma_ostream_state stream_state(f);
   
   diskio::prepare_stream<eT>(f);
+  
+  const eT eT_int_lowest = eT(std::numeric_limits<int>::lowest());
+  const eT eT_int_max    = eT(std::numeric_limits<int>::max());
   
   typename SpMat<eT>::const_iterator iter     = x.begin();
   typename SpMat<eT>::const_iterator iter_end = x.end();
   
   for(; iter != iter_end; ++iter)
     {
+    f << iter.row();  f.put(' ');
+    f << iter.col();  f.put(' ');
+    
     const eT val = (*iter);
     
-    f << iter.row() << ' ' << iter.col() << ' ' << val << '\n';
+    const bool is_real_int = (is_real<eT>::yes) && arma_isfinite(val) && (val > eT_int_lowest) && (val < eT_int_max) && (eT(int(val)) == val);
+    
+    (is_real_int) ? arma_ostream::raw_print_elem(f, int(val)) : arma_ostream::raw_print_elem(f, val);
+    
+    f.put('\n');
     }
   
   
-  // make sure it's possible to figure out the matrix size later
+  // make sure it's possible to determine the matrix size
   if( (x.n_rows > 0) && (x.n_cols > 0) )
     {
     const uword max_row = (x.n_rows > 0) ? x.n_rows-1 : 0;
@@ -3000,7 +3092,7 @@ inline
 bool
 diskio::save_coord_ascii(const SpMat< std::complex<T> >& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   typedef typename std::complex<T> eT;
   
@@ -3008,17 +3100,35 @@ diskio::save_coord_ascii(const SpMat< std::complex<T> >& x, std::ostream& f)
   
   diskio::prepare_stream<eT>(f);
   
+  const T T_int_lowest = T(std::numeric_limits<int>::lowest());
+  const T T_int_max    = T(std::numeric_limits<int>::max());
+  
   typename SpMat<eT>::const_iterator iter     = x.begin();
   typename SpMat<eT>::const_iterator iter_end = x.end();
   
   for(; iter != iter_end; ++iter)
     {
+    f << iter.row();  f.put(' ');
+    f << iter.col();  f.put(' ');
+    
     const eT val = (*iter);
     
-    f << iter.row() << ' ' << iter.col() << ' ' << val.real() << ' ' << val.imag() << '\n';
+    const T val_r = std::real(val);
+    const T val_i = std::imag(val);
+    
+    const bool val_r_is_real_int = (is_real<T>::yes) && arma_isfinite(val_r) && (val_r > T_int_lowest) && (val_r < T_int_max) && (T(int(val_r)) == val_r);
+    const bool val_i_is_real_int = (is_real<T>::yes) && arma_isfinite(val_i) && (val_i > T_int_lowest) && (val_i < T_int_max) && (T(int(val_i)) == val_i);
+    
+    (val_r_is_real_int) ? arma_ostream::raw_print_elem(f, int(val_r)) : arma_ostream::raw_print_elem(f, val_r);
+    
+    f.put(' ');
+    
+    (val_i_is_real_int) ? arma_ostream::raw_print_elem(f, int(val_i)) : arma_ostream::raw_print_elem(f, val_i);
+    
+    f.put('\n');
     }
   
-  // make sure it's possible to figure out the matrix size later
+  // make sure it's possible to determine the matrix size
   if( (x.n_rows > 0) && (x.n_cols > 0) )
     {
     const uword max_row = (x.n_rows > 0) ? x.n_rows-1 : 0;
@@ -3046,7 +3156,7 @@ inline
 bool
 diskio::save_arma_binary(const SpMat<eT>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
@@ -3076,7 +3186,7 @@ inline
 bool
 diskio::save_arma_binary(const SpMat<eT>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   f << diskio::gen_bin_header(x) << '\n';
   f << x.n_rows << ' ' << x.n_cols << ' ' << x.n_nonzero << '\n';
@@ -3095,10 +3205,11 @@ inline
 bool
 diskio::load_csv_ascii(SpMat<eT>& x, const std::string& name, std::string& err_msg, field<std::string>& header, const bool with_header, const char separator)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
-  std::fstream f;
-  f.open(name, std::fstream::in);
+  std::ifstream f;
+  
+  (arma_config::text_as_binary) ? f.open(name, std::fstream::binary) : f.open(name);
   
   bool load_okay = f.is_open();
   
@@ -3106,7 +3217,7 @@ diskio::load_csv_ascii(SpMat<eT>& x, const std::string& name, std::string& err_m
   
   if(with_header)
     {
-    arma_extra_debug_print("diskio::load_csv_ascii(): reading header");
+    arma_debug_print("diskio::load_csv_ascii(): reading header");
     
     std::string              header_line;
     std::stringstream        header_stream;
@@ -3128,7 +3239,11 @@ diskio::load_csv_ascii(SpMat<eT>& x, const std::string& name, std::string& err_m
       while(header_stream.good())
         {
         std::getline(header_stream, token, separator);
+        
+        diskio::sanitise_token(token);
+        
         ++header_n_tokens;
+        
         header_tokens.push_back(token);
         }
       
@@ -3162,7 +3277,7 @@ inline
 bool
 diskio::load_csv_ascii(SpMat<eT>& x, std::istream& f, std::string& err_msg, const char separator)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   // TODO: replace with more efficient implementation
   
@@ -3206,6 +3321,8 @@ diskio::load_csv_ascii(SpMat<eT>& x, std::istream& f, std::string& err_msg, cons
   
   f.clear();
   f.seekg(pos1);
+  
+  if(f.fail() || (f.tellg() != pos1))  { err_msg = "seek failure"; return false; }
   
   try
     {
@@ -3258,14 +3375,14 @@ inline
 bool
 diskio::load_csv_ascii(SpMat< std::complex<T> >& x, std::istream& f, std::string& err_msg, const char separator)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   arma_ignore(x);
   arma_ignore(f);
   arma_ignore(err_msg);
   arma_ignore(separator);
   
-  arma_debug_warn_level(1, "loading complex sparse matrices as csv_ascii not yet implemented");
+  arma_warn(1, "loading complex sparse matrices as csv_ascii not yet implemented");
   
   return false;
   }
@@ -3277,10 +3394,11 @@ inline
 bool
 diskio::load_coord_ascii(SpMat<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
-  std::fstream f;
-  f.open(name, std::fstream::in | std::fstream::binary);
+  std::ifstream f;
+  
+  (arma_config::text_as_binary) ? f.open(name, std::fstream::binary) : f.open(name);
   
   bool load_okay = f.is_open();
   
@@ -3300,7 +3418,7 @@ inline
 bool
 diskio::load_coord_ascii(SpMat<eT>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   if(f.good() == false)  { return false; }
   
@@ -3351,6 +3469,8 @@ diskio::load_coord_ascii(SpMat<eT>& x, std::istream& f, std::string& err_msg)
   f.clear();
   f.seekg(pos1);
   
+  if(f.fail() || (f.tellg() != pos1))  { err_msg = "seek failure"; return false; }
+  
   try
     {
     MapMat<eT> tmp(f_n_rows, f_n_cols);
@@ -3374,10 +3494,7 @@ diskio::load_coord_ascii(SpMat<eT>& x, std::istream& f, std::string& err_msg)
       
       line_stream >> token;
       
-      if(line_stream.fail() == false)
-        {
-        diskio::convert_token( val, token );
-        }
+      if(line_stream.fail() == false)  { diskio::convert_token( val, token ); }
       
       if(val != eT(0))  { tmp(line_row,line_col) = val; }
       }
@@ -3400,7 +3517,7 @@ inline
 bool
 diskio::load_coord_ascii(SpMat< std::complex<T> >& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   if(f.good() == false)  { return false; }
   
@@ -3452,6 +3569,8 @@ diskio::load_coord_ascii(SpMat< std::complex<T> >& x, std::istream& f, std::stri
   f.clear();
   f.seekg(pos1);
   
+  if(f.fail() || (f.tellg() != pos1))  { err_msg = "seek failure"; return false; }
+  
   try
     {
     MapMat< std::complex<T> > tmp(f_n_rows, f_n_cols);
@@ -3476,18 +3595,11 @@ diskio::load_coord_ascii(SpMat< std::complex<T> >& x, std::istream& f, std::stri
       
       line_stream >> token_real;
       
-      if(line_stream.fail() == false)
-        {
-        diskio::convert_token( val_real, token_real );
-        }
-      
+      if(line_stream.fail() == false)  { diskio::convert_token( val_real, token_real ); }
       
       line_stream >> token_imag;
       
-      if(line_stream.fail() == false)
-        {
-        diskio::convert_token( val_imag, token_imag );
-        }
+      if(line_stream.fail() == false)  { diskio::convert_token( val_imag, token_imag ); }
       
       if( (val_real != T(0)) || (val_imag != T(0)) )
         {
@@ -3515,7 +3627,7 @@ inline
 bool
 diskio::load_arma_binary(SpMat<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::ifstream f;
   f.open(name, std::fstream::binary);
@@ -3538,7 +3650,7 @@ inline
 bool
 diskio::load_arma_binary(SpMat<eT>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   bool load_okay = true;
   
@@ -3576,7 +3688,7 @@ diskio::load_arma_binary(SpMat<eT>& x, std::istream& f, std::string& err_msg)
       {
       if(sizeof(uword) == 8)
         {
-        arma_extra_debug_print("detected inconsistent data while loading; re-reading integer parts as u32");
+        arma_debug_print("detected inconsistent data while loading; re-reading integer parts as u32");
         
         // inconstency could be due to a different uword size used during saving,
         // so try loading the row_indices and col_ptrs under the assumption of 32 bit unsigned integers
@@ -3597,14 +3709,14 @@ diskio::load_arma_binary(SpMat<eT>& x, std::istream& f, std::string& err_msg)
         
         if( load_okay && (check2 == true) && (check3 == true) )
           {
-          arma_extra_debug_print("reading integer parts as u32 succeeded");
+          arma_debug_print("reading integer parts as u32 succeeded");
           
           arrayops::convert(access::rwp(x.row_indices), tmp_a.memptr(), x.n_nonzero );
           arrayops::convert(access::rwp(x.col_ptrs),    tmp_b.memptr(), x.n_cols + 1);
           }
         else
           {
-          arma_extra_debug_print("reading integer parts as u32 failed");
+          arma_debug_print("reading integer parts as u32 failed");
           }
         }
       }
@@ -3640,11 +3752,13 @@ inline
 bool
 diskio::save_raw_ascii(const Cube<eT>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
-  std::fstream f(tmp_name, std::fstream::out);
+  std::ofstream f;
+  
+  (arma_config::text_as_binary) ? f.open(tmp_name, std::fstream::binary) : f.open(tmp_name);
   
   bool save_okay = f.is_open();
   
@@ -3669,7 +3783,7 @@ inline
 bool
 diskio::save_raw_ascii(const Cube<eT>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const arma_ostream_state stream_state(f);
   
@@ -3707,7 +3821,7 @@ inline
 bool
 diskio::save_raw_binary(const Cube<eT>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
@@ -3735,7 +3849,7 @@ inline
 bool
 diskio::save_raw_binary(const Cube<eT>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   f.write( reinterpret_cast<const char*>(x.mem), std::streamsize(x.n_elem*sizeof(eT)) );
   
@@ -3751,11 +3865,13 @@ inline
 bool
 diskio::save_arma_ascii(const Cube<eT>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
-  std::ofstream f(tmp_name);
+  std::ofstream f;
+  
+  (arma_config::text_as_binary) ? f.open(tmp_name, std::fstream::binary) : f.open(tmp_name);
   
   bool save_okay = f.is_open();
   
@@ -3781,7 +3897,7 @@ inline
 bool
 diskio::save_arma_ascii(const Cube<eT>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const arma_ostream_state stream_state(f);
   
@@ -3823,7 +3939,7 @@ inline
 bool
 diskio::save_arma_binary(const Cube<eT>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
@@ -3853,7 +3969,7 @@ inline
 bool
 diskio::save_arma_binary(const Cube<eT>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   f << diskio::gen_bin_header(x) << '\n';
   f << x.n_rows << ' ' << x.n_cols << ' ' << x.n_slices << '\n';
@@ -3871,7 +3987,7 @@ inline
 bool
 diskio::save_hdf5_binary(const Cube<eT>& x, const hdf5_name& spec, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   #if defined(ARMA_USE_HDF5)
     {
@@ -3900,8 +4016,8 @@ diskio::save_hdf5_binary(const Cube<eT>& x, const hdf5_name& spec, std::string& 
     hid_t dataspace = H5Screate_simple(3, dims, NULL);   // treat the cube as a 3d array dataspace
     hid_t datatype  = hdf5_misc::get_hdf5_type<eT>();
     
-    // If this returned something invalid, well, it's time to crash.
-    arma_check(datatype == -1, "Cube::save(): unknown datatype for HDF5");
+    // fail if we can't handle the datatype
+    if(datatype == -1)  { err_msg = "unknown datatype for HDF5"; return false; }
     
     // MATLAB forces the users to specify a name at save time for HDF5;
     // Octave will use the default of 'dataset' unless otherwise specified.
@@ -3947,7 +4063,7 @@ diskio::save_hdf5_binary(const Cube<eT>& x, const hdf5_name& spec, std::string& 
       {
       save_okay = false;
       
-      err_msg = "couldn't create dataset";
+      err_msg = "failed to create dataset";
       }
     else
       {
@@ -3987,7 +4103,7 @@ inline
 bool
 diskio::load_raw_ascii(Cube<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   Mat<eT> tmp;
   const bool load_okay = diskio::load_raw_ascii(tmp, name, err_msg);
@@ -4018,7 +4134,7 @@ inline
 bool
 diskio::load_raw_ascii(Cube<eT>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   Mat<eT> tmp;
   const bool load_okay = diskio::load_raw_ascii(tmp, f, err_msg);
@@ -4049,7 +4165,7 @@ inline
 bool
 diskio::load_raw_binary(Cube<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::ifstream f;
   f.open(name, std::fstream::binary);
@@ -4072,7 +4188,7 @@ inline
 bool
 diskio::load_raw_binary(Cube<eT>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   f.clear();
   const std::streampos pos1 = f.tellg();
@@ -4092,7 +4208,7 @@ diskio::load_raw_binary(Cube<eT>& x, std::istream& f, std::string& err_msg)
   try { x.set_size(N / uword(sizeof(eT)), 1, 1); } catch(...) { err_msg = "not enough memory"; return false; }
   
   f.clear();
-  f.read( reinterpret_cast<char *>(x.memptr()), std::streamsize(x.n_elem * uword(sizeof(eT))) );
+  f.read( reinterpret_cast<char*>(x.memptr()), std::streamsize(x.n_elem * uword(sizeof(eT))) );
   
   return f.good();
   }
@@ -4106,9 +4222,11 @@ inline
 bool
 diskio::load_arma_ascii(Cube<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
-  std::ifstream f(name);
+  std::ifstream f;
+  
+  (arma_config::text_as_binary) ? f.open(name, std::fstream::binary) : f.open(name);
   
   bool load_okay = f.is_open();
   
@@ -4130,7 +4248,7 @@ inline
 bool
 diskio::load_arma_ascii(Cube<eT>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::streampos pos = f.tellg();
   
@@ -4209,7 +4327,7 @@ inline
 bool
 diskio::load_arma_binary(Cube<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::ifstream f;
   f.open(name, std::fstream::binary);
@@ -4232,7 +4350,7 @@ inline
 bool
 diskio::load_arma_binary(Cube<eT>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::streampos pos = f.tellg();
     
@@ -4255,7 +4373,7 @@ diskio::load_arma_binary(Cube<eT>& x, std::istream& f, std::string& err_msg)
     
     try { x.set_size(f_n_rows, f_n_cols, f_n_slices); } catch(...) { err_msg = "not enough memory"; return false; }
     
-    f.read( reinterpret_cast<char *>(x.memptr()), std::streamsize(x.n_elem*sizeof(eT)) );
+    f.read( reinterpret_cast<char*>(x.memptr()), std::streamsize(x.n_elem*sizeof(eT)) );
     
     load_okay = f.good();
     }
@@ -4308,7 +4426,7 @@ inline
 bool
 diskio::load_hdf5_binary(Cube<eT>& x, const hdf5_name& spec, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   #if defined(ARMA_USE_HDF5)
     {
@@ -4433,7 +4551,7 @@ inline
 bool
 diskio::load_auto_detect(Cube<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   if(diskio::is_readable(name) == false)  { return false; }
   
@@ -4464,7 +4582,7 @@ inline
 bool
 diskio::load_auto_detect(Cube<eT>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const char* ARMA_CUB_TXT_str = "ARMA_CUB_TXT";
   const char* ARMA_CUB_BIN_str = "ARMA_CUB_BIN";
@@ -4540,7 +4658,7 @@ inline
 bool
 diskio::save_arma_binary(const field<T1>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
@@ -4568,7 +4686,7 @@ inline
 bool
 diskio::save_arma_binary(const field<T1>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   arma_type_check(( (is_Mat<T1>::value == false) && (is_Cube<T1>::value == false) ));
   
@@ -4605,7 +4723,7 @@ inline
 bool
 diskio::load_arma_binary(field<T1>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::ifstream f( name, std::fstream::binary );
   
@@ -4627,7 +4745,7 @@ inline
 bool
 diskio::load_arma_binary(field<T1>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   arma_type_check(( (is_Mat<T1>::value == false) && (is_Cube<T1>::value == false) ));
   
@@ -4692,7 +4810,7 @@ inline
 bool
 diskio::save_std_string(const field<std::string>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
@@ -4719,7 +4837,7 @@ inline
 bool
 diskio::save_std_string(const field<std::string>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   for(uword row=0; row<x.n_rows; ++row)
   for(uword col=0; col<x.n_cols; ++col)
@@ -4745,7 +4863,7 @@ inline
 bool
 diskio::load_std_string(field<std::string>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::ifstream f(name);
   
@@ -4766,7 +4884,7 @@ inline
 bool
 diskio::load_std_string(field<std::string>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   bool load_okay = true;
   
@@ -4838,7 +4956,7 @@ inline
 bool
 diskio::load_auto_detect(field<T1>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::fstream f;
   f.open(name, std::fstream::in | std::fstream::binary);
@@ -4862,7 +4980,7 @@ inline
 bool
 diskio::load_auto_detect(field<T1>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   arma_type_check(( is_Mat<T1>::value == false ));
   
@@ -4915,7 +5033,7 @@ inline
 bool
 diskio::load_ppm_binary(Cube<eT>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::fstream f;
   f.open(name, std::fstream::in | std::fstream::binary);
@@ -4938,7 +5056,7 @@ inline
 bool
 diskio::load_ppm_binary(Cube<eT>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   bool load_okay = true;
   
@@ -4993,7 +5111,7 @@ diskio::load_ppm_binary(Cube<eT>& x, std::istream& f, std::string& err_msg)
         const uword n_elem = 3*f_n_cols*f_n_rows;
         podarray<u16> tmp(n_elem);
         
-        f.read( reinterpret_cast<char *>(tmp.memptr()), std::streamsize(2*n_elem) );
+        f.read( reinterpret_cast<char*>(tmp.memptr()), std::streamsize(2*n_elem) );
         
         uword i = 0;
         
@@ -5031,7 +5149,7 @@ inline
 bool
 diskio::save_ppm_binary(const Cube<eT>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   
@@ -5059,9 +5177,9 @@ inline
 bool
 diskio::save_ppm_binary(const Cube<eT>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
-  arma_debug_check( (x.n_slices != 3), "diskio::save_ppm_binary(): given cube must have exactly 3 slices" );
+  arma_conform_check( (x.n_slices != 3), "diskio::save_ppm_binary(): given cube must have exactly 3 slices" );
   
   const uword n_elem = 3 * x.n_rows * x.n_cols;
   podarray<u8> tmp(n_elem);
@@ -5101,7 +5219,7 @@ inline
 bool
 diskio::load_ppm_binary(field<T1>& x, const std::string& name, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   std::fstream f;
   f.open(name, std::fstream::in | std::fstream::binary);
@@ -5124,7 +5242,7 @@ inline
 bool
 diskio::load_ppm_binary(field<T1>& x, std::istream& f, std::string& err_msg)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   arma_type_check(( is_Mat<T1>::value == false ));
   typedef typename T1::elem_type eT;
@@ -5193,7 +5311,7 @@ diskio::load_ppm_binary(field<T1>& x, std::istream& f, std::string& err_msg)
         const uword n_elem = 3*f_n_cols*f_n_rows;
         podarray<u16> tmp(n_elem);
         
-        f.read( reinterpret_cast<char *>(tmp.memptr()), std::streamsize(2*n_elem) );
+        f.read( reinterpret_cast<char*>(tmp.memptr()), std::streamsize(2*n_elem) );
         
         uword i = 0;
         
@@ -5231,7 +5349,7 @@ inline
 bool
 diskio::save_ppm_binary(const field<T1>& x, const std::string& final_name)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   const std::string tmp_name = diskio::gen_tmp_name(final_name);
   std::ofstream f( tmp_name, std::fstream::binary );
@@ -5258,13 +5376,13 @@ inline
 bool
 diskio::save_ppm_binary(const field<T1>& x, std::ostream& f)
   {
-  arma_extra_debug_sigprint();
+  arma_debug_sigprint();
   
   arma_type_check(( is_Mat<T1>::value == false ));
   
   typedef typename T1::elem_type eT;
   
-  arma_debug_check( (x.n_elem != 3), "diskio::save_ppm_binary(): given field must have exactly 3 matrices of equal size" );
+  arma_conform_check( (x.n_elem != 3), "diskio::save_ppm_binary(): given field must have exactly 3 matrices of equal size" );
   
   bool same_size = true;
   for(uword i=1; i<3; ++i)
@@ -5276,7 +5394,7 @@ diskio::save_ppm_binary(const field<T1>& x, std::ostream& f)
       }
     }
   
-  arma_debug_check( (same_size != true), "diskio::save_ppm_binary(): given field must have exactly 3 matrices of equal size" );
+  arma_conform_check( (same_size != true), "diskio::save_ppm_binary(): given field must have exactly 3 matrices of equal size" );
   
   const Mat<eT>& R = x(0);
   const Mat<eT>& G = x(1);

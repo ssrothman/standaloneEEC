@@ -1538,3 +1538,27 @@ TEST_CASE("sp_subview_row_iterator_test_2")
 
   REQUIRE( true );
   }
+
+
+
+TEST_CASE("sp_subview_n_nonzero_test")
+  {
+  sp_mat x;
+  x.sprandu(100, 100, 0.3);
+  
+  sp_vec y = x.col(0);
+  
+  REQUIRE( y.n_nonzero == x.col(0).n_nonzero );
+  
+  sp_mat z = x.cols(0, 5);
+  
+  REQUIRE( z.n_nonzero == x.cols(0, 5).n_nonzero );
+  
+  z = x.cols(11, 74);
+  
+  REQUIRE( z.n_nonzero == x.cols(11, 74).n_nonzero );
+  
+  z = x.submat(12, 14, 77, 17);
+  
+  REQUIRE( z.n_nonzero == x.submat(12, 14, 77, 17).n_nonzero );
+  }

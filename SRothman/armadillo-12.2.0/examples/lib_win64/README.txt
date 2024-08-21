@@ -1,18 +1,19 @@
 The lib and dll files in this folder are for MSVC running on Windows 10 (64 bit).
 
-The files were obtained from a pre-compiled release of OpenBLAS 0.3.20:
-https://github.com/xianyi/OpenBLAS/releases/download/v0.3.20/OpenBLAS-0.3.20-x64.zip
+The files were obtained from a pre-compiled release of OpenBLAS 0.3.27:
+https://github.com/OpenMathLib/OpenBLAS/releases/download/v0.3.27/OpenBLAS-0.3.27-x64.zip
 
 The compilation was done by a third party.  USE AT YOUR OWN RISK.
 
-libopenblas.dll is a copy of OpenBLAS-0.3.20-x64/bin/libopenblas.dll
-libopenblas.lib is a copy of OpenBLAS-0.3.20-x64/lib/libopenblas.dll.a
-
-The original sources for OpenBLAS are at:
-  https://github.com/xianyi/OpenBLAS/
+libopenblas.dll is a copy of OpenBLAS-0.3.27-x64/bin/libopenblas.dll
+libopenblas.lib is a copy of OpenBLAS-0.3.27-x64/lib/libopenblas.dll.a
 
 OpenBLAS is a high-performance implementation of BLAS and LAPACK.
-The original sources for standard BLAS and LAPACK are at:
+
+The source code for OpenBLAS is available at:
+  https://github.com/OpenMathLib/OpenBLAS
+
+The sources for standard BLAS and LAPACK are at:
   http://www.netlib.org/blas/
   http://www.netlib.org/lapack/
 
