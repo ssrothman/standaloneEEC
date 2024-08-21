@@ -8,19 +8,23 @@
 
 #include "SRothman/Matching/src/matcher.h"
 
-#include "SRothman/EECs/src/run.h"
+#include "SRothman/EECs/src/theOnlyHeader.h"
 
 #include "SRothman/SimonTools/src/recursive_reduce.h"
 #include "testcoords.h"
 
+#include "cov.h"
+
 #include "SRothman/armadillo-12.2.0/include/armadillo"
 
 void example_recojet(const jet& genJet, jet& recoJet, arma::mat& ptrans,
-                    std::vector<bool>& PU, std::vector<bool>& UM){
-    static constexpr float pmiss = 0.1;
-    static constexpr float psplit = 0.1;
+                    std::vector<bool>& PU, std::vector<bool>& UM) noexcept {
+    static constexpr float pmiss = 0.00;
+    static constexpr float psplit = 0.00;
     static std::default_random_engine gen(12);
     static std::uniform_real_distribution<double> uniform(0.0, 1.0);
+    static std::normal_distribution<double> smearpt(1.0, 0.03);
+    static std::normal_distribution<double> smearep(0.0, 0.03);
 
     double totalPt=0.0;
     double weightedEta=0.0;
@@ -35,42 +39,59 @@ void example_recojet(const jet& genJet, jet& recoJet, arma::mat& ptrans,
         const auto& pGen = genJet.particles[iGen];
 
         if (uniform(gen) < pmiss){
-            PU.emplace_back(1);
             UM.emplace_back(1);
             continue;
         } else {
-            PU.emplace_back(0);
             UM.emplace_back(0);
 
             if(uniform(gen) < psplit){
-                recoJet.particles.emplace_back(pGen.pt/2, 
-                        pGen.eta+0.02, pGen.phi-0.02);
+                double newpt = pGen.pt/2 * smearpt(gen);
+                double neweta = pGen.eta + smearep(gen);
+                double newphi = pGen.phi + smearep(gen);
+
+                recoJet.particles.emplace_back(
+                        newpt, neweta, newphi
+                );
 
                 genToReco[iGen].emplace_back(recoJet.nPart);
                 ++recoJet.nPart;
 
-                totalPt += pGen.pt/2;
-                weightedEta += pGen.pt*(pGen.eta+0.02)/2;
-                weightedPhi += pGen.pt*(pGen.phi-0.02)/2;
+                totalPt += newpt;
+                weightedEta += newpt * neweta;
+                weightedPhi += newpt * newphi;
 
-                recoJet.particles.emplace_back(pGen.pt/2, 
-                        pGen.eta-0.02, pGen.phi+0.02);
+                double newpt2 = pGen.pt/2 * smearpt(gen);
+                double neweta2 = pGen.eta + smearep(gen);
+                double newphi2 = pGen.phi + smearep(gen);
+
+                recoJet.particles.emplace_back(
+                        newpt2, neweta2, newphi2
+                );
 
                 genToReco[iGen].emplace_back(recoJet.nPart);
                 ++recoJet.nPart;
 
-                totalPt += pGen.pt/2;
-                weightedEta += pGen.pt*(pGen.eta-0.02)/2;
-                weightedPhi += pGen.pt*(pGen.phi+0.02)/2;
+                totalPt += newpt2;
+                weightedEta += newpt2 * neweta2;
+                weightedPhi += newpt2 * newphi2;
+                PU.emplace_back(0);
+                PU.emplace_back(0);
             } else {
-                recoJet.particles.emplace_back(pGen.pt, pGen.eta, pGen.phi);
+                double newpt = pGen.pt * smearpt(gen);
+                double neweta = pGen.eta + smearep(gen);
+                double newphi = pGen.phi + smearep(gen);
+
+                recoJet.particles.emplace_back(
+                        newpt, neweta, newphi
+                );
 
                 genToReco[iGen].emplace_back(recoJet.nPart);
                 ++recoJet.nPart;
 
-                totalPt += pGen.pt;
-                weightedEta += pGen.pt*pGen.eta;
-                weightedPhi += pGen.pt*pGen.phi;
+                totalPt += newpt;
+                weightedEta += newpt * neweta;
+                weightedPhi += newpt * newphi;
+                PU.emplace_back(0);
             }
         }
     }
@@ -90,17 +111,16 @@ void example_recojet(const jet& genJet, jet& recoJet, arma::mat& ptrans,
         if (iRecos.empty()){
             continue;
         } else {
-            const unsigned long len = iRecos.size();
             for (const auto& iReco : iRecos){
-                ptrans(iReco, iGen) = 1.0/len;
+                ptrans(iReco, iGen) = recoJet.particles[iReco].pt / genJet.particles[iGen].pt * genJet.pt / recoJet.pt;
             }
         }
     }
 
-    std::cout << ptrans << std::endl;
+    //std::cout << ptrans << std::endl;
 }
 
-void make_random_jet(jet& genJet, unsigned nPart){
+void make_random_jet(jet& genJet, unsigned nPart) noexcept {
     static std::default_random_engine gen(12);
     static std::normal_distribution<double> normal(0.0, 0.4);
     //static std::uniform_real_distribution<double> normal(-0.4, 0.4);
@@ -136,7 +156,7 @@ void make_random_jet(jet& genJet, unsigned nPart){
     genJet.phi = weightedPhi;
 }
 
-int main(){
+int main() noexcept {
     std::vector<double> RLedges({1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 3e-1, 1.0});
     auto RLax = std::make_shared<boost::histogram::axis::variable<double>>(RLedges);
     std::vector<double> RLedges_coarse({0.10, 0.20});
@@ -178,11 +198,23 @@ int main(){
 
     fastEEC::normType norm = fastEEC::normType::RAWPT;
 
+    std::shared_ptr<fastEEC::result_t<double>> EEC_reco_accu = nullptr;
+    std::shared_ptr<fastEEC::result_t<double>> EEC_gen_accu = nullptr;
+    /*auto cov = std::make_shared<EECcov<double>>();
+    cov->setup(fastEEC::AXextent(*RLax), 5,
+               fastEEC::AXextent(*RLax_coarse),
+               fastEEC::AXextent(*xi_ax),
+               fastEEC::AXextent(*phi_ax),
+               fastEEC::AXextent(*RLax_coarse),
+               fastEEC::AXextent(*r_dipole_ax),
+               fastEEC::AXextent(*ct_dipole_ax),
+               fastEEC::AXextent(*RLax_coarse),
+               fastEEC::AXextent(*r_tee_ax),
+               fastEEC::AXextent(*ct_tee_ax));*/
 
-    std::shared_ptr<fastEEC::result_t<double>> EEC_accu = nullptr;
-    for(int REP=0; REP<2; ++REP){
+    for(int REP=0; REP<1; ++REP){
         jet genJet;
-        make_random_jet(genJet, 10);
+        make_random_jet(genJet, 50);
 
         jet recoJet;
         arma::mat ptrans;
@@ -190,11 +222,14 @@ int main(){
         example_recojet(genJet, recoJet, ptrans, PU, UM);
 
         auto EEC_reco = std::make_shared<fastEEC::result_t<double>>();
+        auto EEC_gen = std::make_shared<fastEEC::result_t<double>>();
 
-        fastEEC::runSuperSpecific<double>(
-            *EEC_reco,
+        printf("RUNNING GEN\n");
+        fflush(stdout);
+        runFastEEC(
+            *EEC_gen,
             genJet, RLax, norm,
-            6, fastEEC::DORES4 | fastEEC::DORES3 | fastEEC::DOPU | fastEEC::DOTRANSFER,
+            4, fastEEC::DORES4 | fastEEC::DORES3 | fastEEC::DOPU | fastEEC::DOTRANSFER,
             RLax_coarse, xi_ax, phi_ax,
             r_dipole_ax, ct_dipole_ax,
             r_tee_ax, ct_tee_ax,
@@ -203,25 +238,54 @@ int main(){
             &UM, &recoJet, &ptrans
         );
 
+        printf("RUNNING RECO\n");
+        fflush(stdout);
+        runFastEEC(
+                *EEC_reco,
+                recoJet, RLax, norm,
+                4, fastEEC::DORES4 | fastEEC::DORES3 | fastEEC::DOPU,
+                RLax_coarse, xi_ax, phi_ax,
+                r_dipole_ax, ct_dipole_ax,
+                r_tee_ax, ct_tee_ax,
+                r_tri_ax, ct_tri_ax,
+                0.05,
+                &PU
+        );
+
+        /*printf("FILLING COV\n");
+        fflush(stdout);
+        cov->fill(*EEC_reco);*/
+
+        printf("ACCUMULATING\n");
+        fflush(stdout);
         if (REP==0){
-            EEC_accu = EEC_reco;
+            EEC_reco_accu = EEC_reco;
+            EEC_gen_accu = EEC_gen;
         } else {
-            *EEC_accu += *EEC_reco;
+            *EEC_reco_accu += *EEC_reco;
+            *EEC_gen_accu += *EEC_gen;
         }
+
 
         printf("Ran %u:\n", REP);
         //printf("\tdipole: %g\n", recursive_reduce(*(EEC_reco->resolved4_shapes->dipole), 0.0));
         //printf("\ttee   : %g\n", recursive_reduce(*(EEC_reco->resolved4_shapes->tee), 0.0));
+        printf("RECO:\n");
         EEC_reco->summarize();
+        printf("GEN:\n");
+        EEC_gen->summarize();
         fflush(stdout);
     }
 
     printf("\n\n");
     printf("Final:\n");
-    EEC_accu->summarize();
+    printf("RECO:\n");
+    EEC_reco_accu->summarize();
+    printf("GEN:\n");
+    EEC_gen_accu->summarize();
     fflush(stdout);
 
-    fastEEC::dumpToFile(*(EEC_accu->resolved4_shapes->dipole), "dipole.dat");
-    fastEEC::dumpToFile(*(EEC_accu->resolved4_shapes->tee), "tee.dat");
+    //fastEEC::dumpToFile(*(EEC_accu->resolved4_shapes->dipole), "dipole.dat");
+    //fastEEC::dumpToFile(*(EEC_accu->resolved4_shapes->tee), "tee.dat");
     return 0;
 }
