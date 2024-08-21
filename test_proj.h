@@ -114,7 +114,7 @@ bool test_proj_transfer(
         for(unsigned iPart=0; iPart < Npart; ++iPart){
             ptrans(iPart, iPart) = recoJet.particles[iPart].pt / genJet.particles[iPart].pt;
         }
-        ptrans *= genJet.rawpt / recoJet.rawpt;
+        //ptrans *= genJet.rawpt / recoJet.rawpt;
 
         std::vector<bool> PU(Npart, false);
         std::vector<bool> UM(Npart, false);

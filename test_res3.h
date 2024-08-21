@@ -120,7 +120,7 @@ bool test_res3_transfer(unsigned Ntest, unsigned Npart) noexcept {
         for(unsigned iPart=0; iPart < Npart; ++iPart){
             ptrans(iPart, iPart) = recoJet.particles[iPart].pt / genJet.particles[iPart].pt;
         }
-        ptrans *= genJet.pt / recoJet.pt;
+        //ptrans *= genJet.pt / recoJet.pt;
 
         std::vector<bool> PU(Npart, false);
         std::vector<bool> UM(Npart, false);
@@ -158,7 +158,7 @@ bool test_res3_transfer(unsigned Ntest, unsigned Npart) noexcept {
         );
 
         double acc_res3 = recursive_reduce(
-            *EEC_gen.resolved3, 0.0
+            *EEC_reco.resolved3, 0.0
         );
 
         double acc_res3_PU = recursive_reduce(
@@ -168,6 +168,7 @@ bool test_res3_transfer(unsigned Ntest, unsigned Npart) noexcept {
         double acc_res3_transfer = recursive_reduce(
             *EEC_gen.transfer_res3, 0.0
         );
+
         passed = passed && std::abs(acc_res3-acc_res3_PU-acc_res3_transfer) < 1e-8;
     }
 
