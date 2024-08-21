@@ -1,4 +1,5 @@
 *.o
+run_tests
 *.so
 main
 __pycache__/*
