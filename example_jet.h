@@ -113,6 +113,7 @@ void example_recojet(const jet& genJet, jet& recoJet, arma::mat& ptrans,
 void make_random_jet(jet& genJet, unsigned nPart) noexcept {
     static std::default_random_engine gen(12);
     static std::normal_distribution<double> normal(0.0, 0.4);
+    static std::uniform_real_distribution<double> uniform(0.0, 1.0);
     //static std::uniform_real_distribution<double> normal(-0.4, 0.4);
 
     double totalPt=0;
@@ -138,9 +139,11 @@ void make_random_jet(jet& genJet, unsigned nPart) noexcept {
     weightedEta /= totalPt;
     weightedPhi /= totalPt;
 
-    genJet.pt = (totalPt+1) * 1.1;
+    double extrapt = uniform(gen);
+    double JEC = 1 + 0.2*uniform(gen)-0.05;
+    genJet.pt = (totalPt + extrapt) * JEC;
     genJet.sumpt = totalPt;
-    genJet.rawpt = (totalPt+1);
+    genJet.rawpt = (totalPt + extrapt);
 
     genJet.eta = weightedEta;
     genJet.phi = weightedPhi;
