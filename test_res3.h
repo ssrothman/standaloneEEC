@@ -117,9 +117,9 @@ bool test_res3_transfer(unsigned Ntest, unsigned Npart) noexcept {
 
         arma::mat ptrans = arma::eye<arma::mat>(Npart, Npart);
 
-        for(unsigned iPart=0; iPart < Npart; ++iPart){
+        /*for(unsigned iPart=0; iPart < Npart; ++iPart){
             ptrans(iPart, iPart) = recoJet.particles[iPart].pt / genJet.particles[iPart].pt;
-        }
+        }*/
         //ptrans *= genJet.pt / recoJet.pt;
 
         std::vector<bool> PU(Npart, false);

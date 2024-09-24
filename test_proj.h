@@ -111,9 +111,9 @@ bool test_proj_transfer(
 
         arma::mat ptrans = arma::eye<arma::mat>(Npart, Npart);
 
-        for(unsigned iPart=0; iPart < Npart; ++iPart){
+        /*for(unsigned iPart=0; iPart < Npart; ++iPart){
             ptrans(iPart, iPart) = recoJet.particles[iPart].pt / genJet.particles[iPart].pt;
-        }
+        }*/
         //ptrans *= genJet.rawpt / recoJet.rawpt;
 
         std::vector<bool> PU(Npart, false);
