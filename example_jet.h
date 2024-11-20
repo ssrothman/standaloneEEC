@@ -1,13 +1,13 @@
 #ifndef TEST_JETS_H
 #define TEST_JETS_H
 
-#include "SRothman/armadillo-12.2.0/include/armadillo"
 #include <unordered_map>
+#include <random>
 
 #include "SRothman/SimonTools/src/jets.h"
 #include "SRothman/SimonTools/src/printPart.h"
 
-void example_recojet(const jet& genJet, jet& recoJet, arma::mat& ptrans,
+void example_recojet(const jet& genJet, jet& recoJet, Eigen::MatrixXd& ptrans,
                     std::vector<bool>& PU, std::vector<bool>& UM) noexcept {
     static constexpr float pmiss = 0.20;
     static constexpr float psplit = 0.00;
@@ -96,7 +96,7 @@ void example_recojet(const jet& genJet, jet& recoJet, arma::mat& ptrans,
     recoJet.eta = weightedEta;
     recoJet.phi = weightedPhi;
 
-    ptrans = arma::mat(recoJet.nPart, genJet.nPart, arma::fill::zeros);
+    ptrans = Eigen::MatrixXd(recoJet.nPart, genJet.nPart);
     for (const auto& [iGen, iRecos] : genToReco){
         if (iRecos.empty()){
             continue;

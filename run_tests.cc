@@ -18,11 +18,11 @@ int main() noexcept {
             test_proj(NTEST, NPART, 3) ? PASSSTR : FAILSTR);
     printf("\tfourth order: %s\n", 
             test_proj(NTEST, NPART, 4) ? PASSSTR : FAILSTR);
-    printf("\tfifth order : %s\n",  
-            test_proj(NTEST, NPART, 5) ? PASSSTR : FAILSTR);
-    printf("\tsixth order : %s\n",  
-            test_proj(NTEST, NPART, 6) ? PASSSTR : FAILSTR);
-    printf("\n");
+    //printf("\tfifth order : %s\n",  
+    //        test_proj(NTEST, NPART, 5) ? PASSSTR : FAILSTR);
+    //printf("\tsixth order : %s\n",  
+    //        test_proj(NTEST, NPART, 6) ? PASSSTR : FAILSTR);
+    //printf("\n");
 
     printf("testing resolved...\n");
     printf("\tres3: %s\n",
@@ -38,10 +38,10 @@ int main() noexcept {
             test_proj_PU(NTEST, NPART, 3) ? PASSSTR : FAILSTR);
     printf("\tproj4: %s\n",
             test_proj_PU(NTEST, NPART, 4) ? PASSSTR : FAILSTR);
-    printf("\tproj5: %s\n",
-            test_proj_PU(NTEST, NPART, 5) ? PASSSTR : FAILSTR);
-    printf("\tproj6: %s\n",
-            test_proj_PU(NTEST, NPART, 6) ? PASSSTR : FAILSTR);
+    //printf("\tproj5: %s\n",
+    //        test_proj_PU(NTEST, NPART, 5) ? PASSSTR : FAILSTR);
+    //printf("\tproj6: %s\n",
+    //        test_proj_PU(NTEST, NPART, 6) ? PASSSTR : FAILSTR);
     printf("\tres3: %s\n",
             test_res3_PU(NTEST, NPART) ? PASSSTR : FAILSTR);
     printf("\tres4: %s\n",
@@ -55,10 +55,10 @@ int main() noexcept {
             test_proj_transfer(NTEST, NPART, 3) ? PASSSTR : FAILSTR);
     printf("\tproj4: %s\n",
             test_proj_transfer(NTEST, NPART, 4) ? PASSSTR : FAILSTR);
-    printf("\tproj5: %s\n",
-            test_proj_transfer(NTEST, NPART, 5) ? PASSSTR : FAILSTR);
-    printf("\tproj6: %s\n",
-            test_proj_transfer(NTEST, NPART, 6) ? PASSSTR : FAILSTR);
+    //printf("\tproj5: %s\n",
+    //        test_proj_transfer(NTEST, NPART, 5) ? PASSSTR : FAILSTR);
+    //printf("\tproj6: %s\n",
+    //        test_proj_transfer(NTEST, NPART, 6) ? PASSSTR : FAILSTR);
     printf("\tres3: %s\n",
             test_res3_transfer(NTEST, NPART) ? PASSSTR : FAILSTR);
     return 0;

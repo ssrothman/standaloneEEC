@@ -68,7 +68,10 @@ bool test_res4(unsigned Ntest, unsigned Npart) noexcept {
         double acc_res4_tee = recursive_reduce(
             *EEC_gen.resolved4_shapes->tee, 0.0
         );
-        passed = passed && acc_res4_dipole > 0 && acc_res4_tee > 0;
+        double acc_res4_tri = recursive_reduce(
+            *EEC_gen.resolved4_shapes->triangle, 0.0
+        );
+        passed = passed && acc_res4_dipole > 0 && acc_res4_tee > 0 && acc_res4_tri > 0;
     }
 
     return passed;
@@ -140,7 +143,10 @@ bool test_res4_PU(unsigned Ntest, unsigned Npart) noexcept {
         double acc_res4_tee = recursive_reduce(
             *EEC_gen.resolved4_shapes->tee, 0.0
         );
-        passed = passed && acc_res4_dipole > 0 && acc_res4_tee > 0;
+        double acc_res4_tri = recursive_reduce(
+            *EEC_gen.resolved4_shapes->triangle, 0.0
+        );
+        passed = passed && acc_res4_dipole > 0 && acc_res4_tee > 0 && acc_res4_tri > 0;
 
         double acc_res4_dipole_PU = recursive_reduce(
             *EEC_gen.resolved4_shapes_PU->dipole, 0.0
@@ -148,9 +154,14 @@ bool test_res4_PU(unsigned Ntest, unsigned Npart) noexcept {
         double acc_res4_tee_PU = recursive_reduce(
             *EEC_gen.resolved4_shapes_PU->tee, 0.0
         );
-        passed = passed && acc_res4_dipole_PU > 0 && acc_res4_tee_PU > 0;
+        double acc_res4_tri_PU = recursive_reduce(
+            *EEC_gen.resolved4_shapes_PU->triangle, 0.0
+        );
+
+        passed = passed && acc_res4_dipole_PU > 0 && acc_res4_tee_PU > 0; //&& acc_res4_tri_PU > 0;
         passed = passed && acc_res4_dipole_PU < acc_res4_dipole;
         passed = passed && acc_res4_tee_PU < acc_res4_tee;
+        passed = passed && acc_res4_tri_PU < acc_res4_tri;
     }
 
     return passed;

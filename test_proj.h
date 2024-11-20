@@ -109,7 +109,7 @@ bool test_proj_transfer(
         jet recoJet;
         make_random_jet(recoJet, Npart);
 
-        arma::mat ptrans = arma::eye<arma::mat>(Npart, Npart);
+        Eigen::MatrixXd ptrans = Eigen::MatrixXd::Identity(Npart, Npart);
 
         /*for(unsigned iPart=0; iPart < Npart; ++iPart){
             ptrans(iPart, iPart) = recoJet.particles[iPart].pt / genJet.particles[iPart].pt;

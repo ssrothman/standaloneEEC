@@ -6,7 +6,7 @@ CXXFLAGS=-O3 -std=c++17 -pipe -pedantic-errors -Wall -W -Wundef -Wpointer-arith 
 
 #INCLUDES=-I./ -I/work/submit/srothman/miniforge3/envs/uproot/include
 #INCLUDES=-I./ -I/home/simon/miniforge3/include -I/home/simon/standaloneEEC
-INCLUDES=-I./ -I/home/simon/miniforge-pypy3/envs/ROOT/include
+INCLUDES=-I./ -I/home/simon/miniforge3/envs/ROOT/include/eigen3 -I/home/simon/miniforge3/envs/ROOT/include/
 
 default: run_tests
 
