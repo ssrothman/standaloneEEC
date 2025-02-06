@@ -69,6 +69,8 @@ bool test_proj_PU(unsigned Ntest,
             nullptr, nullptr,
             nullptr, nullptr,
             nullptr, nullptr,
+            nullptr, nullptr,
+            nullptr, nullptr,
             0.0,
             &isPU
         );
@@ -133,6 +135,8 @@ bool test_proj_transfer(
             nullptr, nullptr,
             nullptr, nullptr,
             nullptr, nullptr,
+            nullptr, nullptr,
+            nullptr, nullptr,
             0.0,
             &UM, &recoJet, &ptrans
         );
@@ -144,6 +148,8 @@ bool test_proj_transfer(
             recoJet, RLax, norm,
             order, fastEEC::DOPU,
             nullptr, nullptr, nullptr,
+            nullptr, nullptr,
+            nullptr, nullptr,
             nullptr, nullptr,
             nullptr, nullptr,
             nullptr, nullptr,

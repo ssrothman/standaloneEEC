@@ -3,8 +3,8 @@
 #include "test_res3.h"
 #include "test_res4.h"
 
-constexpr unsigned NPART = 50;
-constexpr unsigned NTEST = 10;
+constexpr unsigned NPART = 70;
+constexpr unsigned NTEST = 100;
 
 constexpr const char* PASSSTR = "\x1B[32mpass\033[0m";
 constexpr const char* FAILSTR = "\x1B[31mfail\033[0m";

@@ -10,3 +10,6 @@
 [submodule "SRothman/SimonTools/src"]
 	path = SRothman/SimonTools/src
 	url = git@github.com:ssrothman/simon_util_cpp.git
+[submodule "libnpy"]
+	path = libnpy
+	url = https://github.com/llohse/libnpy.git

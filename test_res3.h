@@ -5,56 +5,67 @@
 #include <boost/histogram.hpp>
 #include "SRothman/EECs/src/theOnlyHeader.h"
 #include "SRothman/SimonTools/src/recursive_reduce.h"
+#include "SRothman/SimonTools/src/ToyShowerer.h"
+#include "axes.h"
 #include <memory>
 
 bool test_res3(unsigned Ntest, unsigned Npart) noexcept {
-    std::vector<double> RLedges({1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 3e-1, 1.0});
-    auto RLax = std::make_shared<boost::histogram::axis::variable<double>>(RLedges);
-    std::vector<double> RLedges_coarse({0.10, 0.20});
-    auto RLax_coarse = std::make_shared<boost::histogram::axis::variable<double>>(RLedges_coarse);
+    auto RLax = get_RLax();
+    auto RLax_coarse = get_RLax_coarse();
+    auto xi_ax = get_xi_res3_ax();
+    auto phi_ax = get_phi_res3_ax();
 
-    std::vector<double> xiedges({1e-3, 0.5, 1.01});
-    auto xi_ax = std::make_shared<boost::histogram::axis::variable<double>>(xiedges);
-
-    std::vector<double> phi_edges({1e-3, 0.5, 1.0});
-    auto phi_ax = std::make_shared<boost::histogram::axis::variable<double>>(phi_edges);
-    
     fastEEC::normType norm = fastEEC::normType::SUMPT;
 
+    fastEEC::result_t<double> accu;
+
     bool passed = true;
+
+    ToyShowerer showerer("UNIFORM", "GLUON", "LNX", "OFF",
+                         0.1, 0.1, 0.5, "");
+
     for (unsigned REPEAT=0; (REPEAT<Ntest) && passed; ++REPEAT){
         jet genJet;
-        make_random_jet(genJet, Npart);
+        showerer.shower(100, 0, 0, 0, Npart, genJet);
 
-        fastEEC::result_t<double> EEC_gen;
+        double acc_res3;
 
-        runFastEEC(
-            EEC_gen,
-            genJet, RLax, norm,
-            3, fastEEC::DORES3,
-            RLax_coarse, xi_ax, phi_ax
-        );
+        if (REPEAT==0){
+            runFastEEC(
+                accu,
+                genJet, RLax, norm,
+                3, fastEEC::DORES3,
+                RLax_coarse, xi_ax, phi_ax
+            );
 
-        double acc_res3 = recursive_reduce(
-            *EEC_gen.resolved3, 0.0
-        );
+            acc_res3 = recursive_reduce(
+                *accu.resolved3, 0.0
+            );
+        } else {
+            fastEEC::result_t<double> EEC_gen;
+
+            runFastEEC(
+                EEC_gen,
+                genJet, RLax, norm,
+                3, fastEEC::DORES3,
+                RLax_coarse, xi_ax, phi_ax
+            );
+
+            acc_res3 = recursive_reduce(
+                *EEC_gen.resolved3, 0.0
+            );
+        }
         passed = passed && std::abs(acc_res3 - 1) < 1e-10;
     }
     return passed;
 }
 
 bool test_res3_PU(unsigned Ntest, unsigned Npart) noexcept {
-    std::vector<double> RLedges({1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 3e-1, 1.0});
-    auto RLax = std::make_shared<boost::histogram::axis::variable<double>>(RLedges);
-    std::vector<double> RLedges_coarse({0.10, 0.20});
-    auto RLax_coarse = std::make_shared<boost::histogram::axis::variable<double>>(RLedges_coarse);
+    auto RLax = get_RLax();
+    auto RLax_coarse = get_RLax_coarse();
+    auto xi_ax = get_xi_res3_ax();
+    auto phi_ax = get_phi_res3_ax();
 
-    std::vector<double> xiedges({1e-3, 0.5, 1.01});
-    auto xi_ax = std::make_shared<boost::histogram::axis::variable<double>>(xiedges);
-
-    std::vector<double> phi_edges({1e-3, 0.5, 1.0});
-    auto phi_ax = std::make_shared<boost::histogram::axis::variable<double>>(phi_edges);
-    
     fastEEC::normType norm = fastEEC::normType::SUMPT;
 
     bool passed = true;
@@ -73,6 +84,8 @@ bool test_res3_PU(unsigned Ntest, unsigned Npart) noexcept {
             3, fastEEC::DORES3 | fastEEC::DOPU,
             RLax_coarse, xi_ax, phi_ax,
             nullptr, nullptr, 
+            nullptr, nullptr,
+            nullptr, nullptr,
             nullptr, nullptr,
             nullptr, nullptr,
             0.0,
@@ -94,16 +107,10 @@ bool test_res3_PU(unsigned Ntest, unsigned Npart) noexcept {
 }
 
 bool test_res3_transfer(unsigned Ntest, unsigned Npart) noexcept {
-    std::vector<double> RLedges({1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 3e-1, 1.0});
-    auto RLax = std::make_shared<boost::histogram::axis::variable<double>>(RLedges);
-    std::vector<double> RLedges_coarse({0.10, 0.20});
-    auto RLax_coarse = std::make_shared<boost::histogram::axis::variable<double>>(RLedges_coarse);
-
-    std::vector<double> xiedges({1e-3, 0.5, 1.01});
-    auto xi_ax = std::make_shared<boost::histogram::axis::variable<double>>(xiedges);
-
-    std::vector<double> phi_edges({1e-3, 0.5, 1.0});
-    auto phi_ax = std::make_shared<boost::histogram::axis::variable<double>>(phi_edges);
+    auto RLax = get_RLax();
+    auto RLax_coarse = get_RLax_coarse();
+    auto xi_ax = get_xi_res3_ax();
+    auto phi_ax = get_phi_res3_ax();
     
     fastEEC::normType norm = fastEEC::normType::RAWPT;
 
@@ -139,6 +146,8 @@ bool test_res3_transfer(unsigned Ntest, unsigned Npart) noexcept {
             nullptr, nullptr, 
             nullptr, nullptr,
             nullptr, nullptr,
+            nullptr, nullptr,
+            nullptr, nullptr,
             0.0,
             &UM, &recoJet, &ptrans
         );
@@ -150,6 +159,8 @@ bool test_res3_transfer(unsigned Ntest, unsigned Npart) noexcept {
             recoJet, RLax, norm,
             3, fastEEC::DOPU | fastEEC::DORES3,
             RLax_coarse, xi_ax, phi_ax,
+            nullptr, nullptr,
+            nullptr, nullptr,
             nullptr, nullptr,
             nullptr, nullptr,
             nullptr, nullptr,
