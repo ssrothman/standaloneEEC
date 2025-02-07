@@ -21,12 +21,12 @@ bool test_res3(unsigned Ntest, unsigned Npart) noexcept {
 
     bool passed = true;
 
-    ToyShowerer showerer("UNIFORM", "GLUON", "LNX", "OFF",
+    ToyShowerer showerer("UNIFORM", "GLUON", "LNX",
                          0.1, 0.1, 0.5, "");
 
     for (unsigned REPEAT=0; (REPEAT<Ntest) && passed; ++REPEAT){
         jet genJet;
-        showerer.shower(100, 0, 0, 0, Npart, genJet);
+        showerer.shower(100, 0, 0, Npart, genJet);
 
         double acc_res3;
 
