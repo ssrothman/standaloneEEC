@@ -11,7 +11,7 @@ WARNINGFLAGS=-pedantic-errors -Wall -W -Wundef -Wpointer-arith -Wcast-align -Wsi
 #INCLUDES=-I./ -I/home/simon/miniforge3/include -I/home/simon/standaloneEEC
 INCLUDES=-I./ -I/home/simon/miniforge3/envs/ROOT/include/eigen3 -I/home/simon/miniforge3/envs/ROOT/include/
 
-default: test_res4_standalone res4_standalone_benchmark res4_standalone_fastEEC res4_standalone_multi_array res4_standalone_multi_array_precomputed res4_standalone_vector res4_standalone_vector_precomputed
+default: test_res4_standalone res4_standalone_benchmark res4_standalone_fastEEC res4_standalone_multi_array res4_standalone_multi_array_precomputed res4_standalone_vector res4_standalone_vector_precomputed res4_standalone_transfer_benchmark res4_standalone_transfer_multi_array res4_standalone_transfer_vector res4_standalone_transfer_fastEEC
 
 clean: 
 	rm -f *.o
@@ -50,8 +50,17 @@ res4_standalone_vector: res4_standalone_vector.cc EEC_standalone.so EEC_old.so
 res4_standalone_vector_precomputed: res4_standalone_vector_precomputed.cc EEC_standalone.so EEC_old.so
 	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
 
+res4_standalone_transfer_benchmark: res4_standalone_transfer_benchmark.cc EEC_standalone.so EEC_old.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
 
+res4_standalone_transfer_multi_array: res4_standalone_transfer_multi_array.cc EEC_standalone.so EEC_old.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
 
+res4_standalone_transfer_vector: res4_standalone_transfer_vector.cc EEC_standalone.so EEC_old.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+
+res4_standalone_transfer_fastEEC: res4_standalone_transfer_fastEEC.cc EEC_standalone.so EEC_old.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
 
 
 
