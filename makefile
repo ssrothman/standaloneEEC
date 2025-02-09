@@ -11,7 +11,7 @@ WARNINGFLAGS=-pedantic-errors -Wall -W -Wundef -Wpointer-arith -Wcast-align -Wsi
 #INCLUDES=-I./ -I/home/simon/miniforge3/include -I/home/simon/standaloneEEC
 INCLUDES=-I./ -I/home/simon/miniforge3/envs/ROOT/include/eigen3 -I/home/simon/miniforge3/envs/ROOT/include/ -I/home/simon/standaloneEEC
 
-default: bin/res4_standalone_benchmark bin/test_res4_standalone bin/res4_standalone_fastEEC bin/res4_standalone_multi_array bin/res4_standalone_multi_array_precomputed bin/res4_standalone_vector bin/res4_standalone_vector_precomputed bin/res4_standalone_transfer_benchmark bin/res4_standalone_transfer_multi_array bin/res4_standalone_transfer_vector bin/res4_standalone_transfer_fastEEC
+default: bin/res4_standalone_benchmark bin/test_res4_standalone bin/res4_standalone_fastEEC bin/res4_standalone_multi_array bin/res4_standalone_multi_array_precomputed bin/res4_standalone_vector bin/res4_standalone_vector_precomputed bin/res4_standalone_transfer_benchmark bin/res4_standalone_transfer_multi_array bin/res4_standalone_transfer_vector bin/res4_standalone_transfer_fastEEC bin/res4_standalone_validate
 
 clean: 
 	rm -f lib/*
@@ -22,12 +22,14 @@ clean_output:
 	rm -f massif.out.*
 
 STANDALONEOBJ=$(wildcard SRothman/EECs/src/standalones/*.cc)
-lib/EEC_standalone.so: $(STANDALONEOBJ)
-	g++ -shared -fPIC -o $@ $^ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+STANDALONEHEADERS=$(wildcard SRothman/EECs/src/standalones/*.h)
+lib/EEC_standalone.so: $(STANDALONEOBJ) $(STANDALONEHEADERS)
+	g++ -shared -fPIC -o $@ $(STANDALONEOBJ) $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
 
 EECOLDOBJ=$(wildcard SRothman/EECs/src/*.cc)
-lib/EEC_old.so: $(EECOLDOBJ)
-	g++ -shared -fPIC -o $@ $^ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+EECOLDHEADERS=$(wildcard SRothman/EECs/src/*.h)
+lib/EEC_old.so: $(EECOLDOBJ) $(EECOLDHEADERS)
+	g++ -shared -fPIC -o $@ $(EECOLDOBJ) $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
 
 bin/test_res4_standalone: test_res4_standalone.cc lib/EEC_standalone.so lib/EEC_old.so
 	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
@@ -60,4 +62,7 @@ bin/res4_standalone_transfer_vector: res4_standalone_transfer_vector.cc lib/EEC_
 	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
 
 bin/res4_standalone_transfer_fastEEC: res4_standalone_transfer_fastEEC.cc lib/EEC_standalone.so lib/EEC_old.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+
+bin/res4_standalone_validate: res4_standalone_validate.cc lib/EEC_standalone.so lib/EEC_old.so
 	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
