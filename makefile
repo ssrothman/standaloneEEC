@@ -5,7 +5,8 @@ MATCHINGOBJ=$(MATCHINGSRC:.cc=.o)
 OPTIMIZE=-O3 -mtune=native -flto
 DEBUG=-ggdb3 -g
 CXXFLAGS=--std=c++17 -pipe -DNDEBUG $(OPTIMIZE) $(DEBUG)
-WARNINGFLAGS=-pedantic-errors -Wall -W -Wundef -Wpointer-arith -Wcast-align -Wsign-compare -Wsign-compare -Wmissing-noreturn  -Wmissing-format-attribute -Wunreachable-code -Wdisabled-optimization -Werror 
+WARNINGFLAGS=-pedantic-errors -Wall -W -Wundef -Wpointer-arith -Wcast-align -Wsign-compare -Wsign-compare -Wmissing-noreturn  -Wmissing-format-attribute -Wunreachable-code -Wdisabled-optimization -Werror -Wno-suggest-attribute=format
+LIBS=$(root-config --glibs --cflags --libs) -lMathMore -lGenVector
 
 #INCLUDES=-I./ -I/work/submit/srothman/miniforge3/envs/uproot/include
 #INCLUDES=-I./ -I/home/simon/miniforge3/include -I/home/simon/standaloneEEC
@@ -31,38 +32,43 @@ EECOLDHEADERS=$(wildcard SRothman/EECs/src/*.h)
 lib/EEC_old.so: $(EECOLDOBJ) $(EECOLDHEADERS)
 	g++ -shared -fPIC -o $@ $(EECOLDOBJ) $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
 
-bin/test_res4_standalone: test_res4_standalone.cc lib/EEC_standalone.so lib/EEC_old.so
-	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+TOOLSOBJ=$(wildcard SRothman/SimonTools/src/*.cc)
+TOOLSHEADERS=$(wildcard SRothman/SimonTools/src/*.h)
+lib/SimonTools.so: $(TOOLSOBJ) $(TOOLSHEADERS)
+	g++ -shared -fPIC -o $@ $(TOOLSOBJ) $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
 
-bin/res4_standalone_benchmark: res4_standalone_benchmark.cc lib/EEC_standalone.so lib/EEC_old.so
-	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+bin/test_res4_standalone: test_res4_standalone.cc lib/EEC_standalone.so lib/EEC_old.so lib/SimonTools.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
 
-bin/res4_standalone_fastEEC: res4_standalone_fastEEC.cc lib/EEC_standalone.so lib/EEC_old.so
-	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+bin/res4_standalone_benchmark: res4_standalone_benchmark.cc lib/EEC_standalone.so lib/EEC_old.so lib/SimonTools.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
 
-bin/res4_standalone_multi_array: res4_standalone_multi_array.cc lib/EEC_standalone.so lib/EEC_old.so
-	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+bin/res4_standalone_fastEEC: res4_standalone_fastEEC.cc lib/EEC_standalone.so lib/EEC_old.so lib/SimonTools.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
 
-bin/res4_standalone_multi_array_precomputed: res4_standalone_multi_array_precomputed.cc lib/EEC_standalone.so lib/EEC_old.so
-	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+bin/res4_standalone_multi_array: res4_standalone_multi_array.cc lib/EEC_standalone.so lib/EEC_old.so lib/SimonTools.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
 
-bin/res4_standalone_vector: res4_standalone_vector.cc lib/EEC_standalone.so lib/EEC_old.so
-	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+bin/res4_standalone_multi_array_precomputed: res4_standalone_multi_array_precomputed.cc lib/EEC_standalone.so lib/EEC_old.so lib/SimonTools.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
 
-bin/res4_standalone_vector_precomputed: res4_standalone_vector_precomputed.cc lib/EEC_standalone.so lib/EEC_old.so
-	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+bin/res4_standalone_vector: res4_standalone_vector.cc lib/EEC_standalone.so lib/EEC_old.so lib/SimonTools.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
 
-bin/res4_standalone_transfer_benchmark: res4_standalone_transfer_benchmark.cc lib/EEC_standalone.so lib/EEC_old.so
-	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+bin/res4_standalone_vector_precomputed: res4_standalone_vector_precomputed.cc lib/EEC_standalone.so lib/EEC_old.so lib/SimonTools.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
 
-bin/res4_standalone_transfer_multi_array: res4_standalone_transfer_multi_array.cc lib/EEC_standalone.so lib/EEC_old.so
-	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+bin/res4_standalone_transfer_benchmark: res4_standalone_transfer_benchmark.cc lib/EEC_standalone.so lib/EEC_old.so lib/SimonTools.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
 
-bin/res4_standalone_transfer_vector: res4_standalone_transfer_vector.cc lib/EEC_standalone.so lib/EEC_old.so
-	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+bin/res4_standalone_transfer_multi_array: res4_standalone_transfer_multi_array.cc lib/EEC_standalone.so lib/EEC_old.so lib/SimonTools.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
 
-bin/res4_standalone_transfer_fastEEC: res4_standalone_transfer_fastEEC.cc lib/EEC_standalone.so lib/EEC_old.so
-	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+bin/res4_standalone_transfer_vector: res4_standalone_transfer_vector.cc lib/EEC_standalone.so lib/EEC_old.so lib/SimonTools.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
 
-bin/res4_standalone_validate: res4_standalone_validate.cc lib/EEC_standalone.so lib/EEC_old.so
-	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS)
+bin/res4_standalone_transfer_fastEEC: res4_standalone_transfer_fastEEC.cc lib/EEC_standalone.so lib/EEC_old.so lib/SimonTools.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
+
+bin/res4_standalone_validate: res4_standalone_validate.cc lib/EEC_standalone.so lib/EEC_old.so lib/SimonTools.so
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)

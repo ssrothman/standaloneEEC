@@ -4,7 +4,7 @@
 #include <boost/histogram.hpp>
 
 #include "SRothman/EECs/src/standalones/res4_standalone.h"
-#include "SRothman/SimonTools/src/simon_jet.h"
+#include "SRothman/SimonTools/src/jet.h"
 #include "SRothman/EECs/src/theOnlyHeader.h"
 
 constexpr int NPART = 100;
@@ -23,7 +23,7 @@ public:
         gamma = std::gamma_distribution<double>(2, 2);
     }
 
-    void makeJet(simon_jet& J, int nPart){
+    void makeJet(simon::jet& J, int nPart){
         J.nPart = nPart;
 
         J.sumpt = 0;
@@ -65,7 +65,7 @@ int main(){
 
     auto t0 = std::chrono::high_resolution_clock::now();
     for (int i=0; i<NITER; ++i){
-        simon_jet J;
+        simon::jet J;
         jetFactory.makeJet(J, NPART);
 
         standaloneEEC::res4_result_multi_array result(
@@ -87,7 +87,7 @@ int main(){
 
     t0 = std::chrono::high_resolution_clock::now();
     for (int i=0; i<NITER; ++i){
-        simon_jet J;
+        simon::jet J;
         jetFactory.makeJet(J, NPART);
 
         standaloneEEC::res4_result_multi_array result(
@@ -109,7 +109,7 @@ int main(){
 
     t0 = std::chrono::high_resolution_clock::now();
     for (int i=0; i<NITER; ++i){
-        simon_jet J;
+        simon::jet J;
         jetFactory.makeJet(J, NPART);
 
         standaloneEEC::res4_result_vector result(
@@ -131,7 +131,7 @@ int main(){
 
     t0 = std::chrono::high_resolution_clock::now();
     for (int i=0; i<NITER; ++i){
-        simon_jet J;
+        simon::jet J;
         jetFactory.makeJet(J, NPART);
 
         standaloneEEC::res4_result_vector result(
@@ -153,7 +153,7 @@ int main(){
 
     t0 = std::chrono::high_resolution_clock::now();
     for (int i=0; i<NITER; ++i){
-        simon_jet J;
+        simon::jet J;
         jetFactory.makeJet(J, NPART);
 
         fastEEC::result_t<double> result;

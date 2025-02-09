@@ -4,13 +4,13 @@
 #include <boost/histogram.hpp>
 
 #include "SRothman/EECs/src/standalones/res4_standalone.h"
-#include "SRothman/SimonTools/src/simon_jet.h"
+#include "SRothman/SimonTools/src/jet.h"
 #include "SRothman/EECs/src/theOnlyHeader.h"
 
 int main(){
     printf("Hello, world!\n");
 
-    simon_jet J;
+    simon::jet J;
     
     J.nPart = 7;
     J.sumpt = 7;
@@ -104,7 +104,7 @@ int main(){
 
     auto t1 = std::chrono::high_resolution_clock::now();
     for (size_t trial=0; trial<NUM_TRIALS; ++trial){
-        simon_jet J;
+        simon::jet J;
         J.nPart = NPART;
         J.eta = 0;
         J.phi = 0;

@@ -5,7 +5,7 @@
 #include <Eigen/Dense>
 
 #include "SRothman/EECs/src/standalones/res4_standalone.h"
-#include "SRothman/SimonTools/src/simon_jet.h"
+#include "SRothman/SimonTools/src/jet.h"
 #include "SRothman/EECs/src/theOnlyHeader.h"
 
 constexpr int NPART = 50;
@@ -24,7 +24,7 @@ public:
         gamma = std::gamma_distribution<double>(2, 2);
     }
 
-    void makeJet(simon_jet& J, const int nPart){
+    void makeJet(simon::jet& J, const int nPart){
         J.nPart = nPart;
 
         J.sumpt = 0;
@@ -46,7 +46,7 @@ public:
         }
     }
 
-    void makeTransferJet(const simon_jet& J1, simon_jet& J2, Eigen::MatrixXd& tmat){
+    void makeTransferJet(const simon::jet& J1, simon::jet& J2, Eigen::MatrixXd& tmat){
         J2.nPart = 0;
 
         J2.sumpt = 0;
@@ -91,7 +91,7 @@ int main(){
 
     auto t0 = std::chrono::high_resolution_clock::now();
     for (int i=0; i<NITER; ++i){
-        simon_jet J1, J2;
+        simon::jet J1, J2;
         Eigen::MatrixXd tmat(NPART, NPART);
         jetFactory.makeJet(J1, NPART);
         jetFactory.makeTransferJet(J1, J2, tmat);
@@ -123,7 +123,7 @@ int main(){
 
     t0 = std::chrono::high_resolution_clock::now();
     for (int i=0; i<NITER; ++i){
-        simon_jet J1, J2;
+        simon::jet J1, J2;
         Eigen::MatrixXd tmat(NPART, NPART);
         jetFactory.makeJet(J1, NPART);
         jetFactory.makeTransferJet(J1, J2, tmat);
@@ -155,7 +155,7 @@ int main(){
 
     t0 = std::chrono::high_resolution_clock::now();
     for (int i=0; i<NITER; ++i){
-        simon_jet J1, J2;
+        simon::jet J1, J2;
         Eigen::MatrixXd tmat(NPART, NPART);
         jetFactory.makeJet(J1, NPART);
         jetFactory.makeTransferJet(J1, J2, tmat);
