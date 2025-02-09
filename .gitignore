@@ -1,13 +1,5 @@
-*.o
-run_tests
-*.so
-main
 __pycache__/*
-SRothman/armadillo-12.2.0/*
-test_res4_standalone
-res4_standalone_benchmark
-res4_standalone_fastEEC
-res4_standalone_multi_array
-res4_standalone_multi_array_precomputed
-res4_standalone_vector
-res4_standalone_vector_precomputed
+bin/*
+lib/*
+callgrind.out.*
+massif.out.*
