@@ -1,0 +1,55 @@
+Benchmarking Res3Calculator...
+
+NPART = 60
+NITER = 10
+NBINS = 20
+
+PLAIN
+	JIT vector: 35 ms
+	JIT multiarray: 27 ms
+	precomputed vector: 34 ms
+	precomputed multiarray: 23 ms
+WITH UNMATCHED
+	JIT vector: 27 ms
+	JIT multiarray: 20 ms
+	precomputed vector: 26 ms
+	precomputed multiarray: 19 ms
+TRANSFER
+	JIT vector - vector: 50 ms
+	JIT vector - multiarray: 1610 ms
+	JIT multiarray - vector: 49 ms
+	JIT multiarray - multiarray: 1610 ms
+	precomputed vector - vector: 49 ms
+	precomputed vector - multiarray: 1613 ms
+	precomputed multiarray - vector: 46 ms
+	precomputed multiarray - multiarray: 1617 ms
+
+
+###############################################################
+
+Benchmarking Res4Calculator...
+
+NPART = 60
+NITER = 10
+NBINS = 20
+
+PLAIN
+	JIT vector: 3014 ms
+	JIT multiarray: 2887 ms
+	precomputed vector: 2851 ms
+	precomputed multiarray: 2855 ms
+WITH UNMATCHED
+	JIT vector: 2920 ms
+	JIT multiarray: 2902 ms
+	precomputed vector: 2852 ms
+	precomputed multiarray: 2853 ms
+TRANSFER
+	JIT vector - vector: 6047 ms
+	JIT vector - multiarray: 13288 ms
+	JIT multiarray - vector: 6221 ms
+	JIT multiarray - multiarray: 13611 ms
+	precomputed vector - vector: 5955 ms
+	precomputed vector - multiarray: 13178 ms
+	precomputed multiarray - vector: 5888 ms
+	precomputed multiarray - multiarray: 13178 ms
+
