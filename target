@@ -27,6 +27,35 @@ TRANSFER
 
 ###############################################################
 
+Benchmarking CARes3Calculator...
+
+NPART = 60
+NITER = 10
+NBINS = 20
+
+PLAIN
+	JIT vector: 45 ms
+	JIT multiarray: 36 ms
+	precomputed vector: 42 ms
+	precomputed multiarray: 26 ms
+WITH UNMATCHED
+	JIT vector: 36 ms
+	JIT multiarray: 28 ms
+	precomputed vector: 34 ms
+	precomputed multiarray: 26 ms
+TRANSFER
+	JIT vector - vector: 67 ms
+	JIT vector - multiarray: 1653 ms
+	JIT multiarray - vector: 65 ms
+	JIT multiarray - multiarray: 1636 ms
+	precomputed vector - vector: 65 ms
+	precomputed vector - multiarray: 1672 ms
+	precomputed multiarray - vector: 61 ms
+	precomputed multiarray - multiarray: 1645 ms
+
+
+###############################################################
+
 Benchmarking Res4Calculator...
 
 NPART = 60

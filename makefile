@@ -12,7 +12,7 @@ LIBS=$(root-config --glibs --cflags --libs) -lMathMore -lGenVector -lMinuit2
 #INCLUDES=-I./ -I/home/simon/miniforge3/include -I/home/simon/standaloneEEC
 INCLUDES=-I./ -I/home/simon/miniforge3/envs/ROOT/include/eigen3 -I/home/simon/miniforge3/envs/ROOT/include/ -I/home/simon/standaloneEEC -I/home/simon/miniforge3/envs/ROOT/include/eigen3
 
-default: bin/res4_benchmark bin/res3_benchmark bin/CAres3_benchmark 
+default: bin/res4_benchmark bin/res3_benchmark bin/CAres3_benchmark bin/CAres4_benchmark 
 
 clean: 
 	rm -f lib/*
@@ -41,6 +41,9 @@ ALLLIBS=lib/EEC.so lib/SimonTools.so lib/Matching.so
 libs: $(ALLLIBS)
 
 bin/res4_benchmark: res4_benchmark.cc $(ALLLIBS)
+	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
+
+bin/CAres4_benchmark: CAres4_benchmark.cc $(ALLLIBS)
 	g++ $^ -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
 
 bin/res3_benchmark: res3_benchmark.cc $(ALLLIBS)
