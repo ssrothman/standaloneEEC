@@ -20,8 +20,6 @@ int main(){
         bins,
         bins, bins,
         bins, bins,
-        bins, bins,
-        0.05, 0.05,
         EEC::normType::RAWPT
     );
 
@@ -29,12 +27,9 @@ int main(){
         bins, 
         bins, bins,
         bins, bins,
-        bins, bins,
         bins, 
         bins, bins,
         bins, bins,
-        bins, bins,
-        0.05, 0.05,
         EEC::normType::RAWPT
     );
 

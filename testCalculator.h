@@ -20,7 +20,7 @@
 #ifndef CHECK_BY_HAND
 constexpr int NPART = 60;
 #else
-constexpr int NPART = 50;
+constexpr int NPART = 15;
 #endif
 
 constexpr int NITER = 10;
@@ -155,6 +155,26 @@ void check_sum_transfer(const CALCULATOR& calculator,
     auto sum_over_gen = tresult.get_sum_over_gen();
     bool pass = sum_over_gen + untransferred_reco == reco - reco_unmatched;
     printf("sum_over_gen + untransferred_reco == reco - reco_unmatched? %s\n", pass ? "true" : "false");
+    if constexpr(std::is_same_v<CALCULATOR, EEC::CARes4Calculator>){
+        bool pass_chain = sum_over_gen.get_chain() + untransferred_reco.get_chain() == reco.get_chain() - reco_unmatched.get_chain();
+        bool pass_symmetric_wrtR = sum_over_gen.get_symmetric_wrtR() + untransferred_reco.get_symmetric_wrtR() == reco.get_symmetric_wrtR() - reco_unmatched.get_symmetric_wrtR();
+        bool pass_symmetric_wrtr = sum_over_gen.get_symmetric_wrtr() + untransferred_reco.get_symmetric_wrtr() == reco.get_symmetric_wrtr() - reco_unmatched.get_symmetric_wrtr();
+        printf("\tchain: %s\n", pass_chain ? "true" : "false");
+        printf("\t\ttotal_transfered = %g\n", sum_over_gen.total_chain_weight());
+        printf("\t\tuntransferred_reco = %g\n", untransferred_reco.total_chain_weight());
+        printf("\t\treco = %g\n", reco.total_chain_weight());
+        printf("\t\treco_unmatched = %g\n", reco_unmatched.total_chain_weight());
+        printf("\tsymmetric_wrtR: %s\n", pass_symmetric_wrtR ? "true" : "false");
+        printf("\t\ttotal_transfered = %g\n", sum_over_gen.total_symmetric_wrtR_weight());
+        printf("\t\tuntransferred_reco = %g\n", untransferred_reco.total_symmetric_wrtR_weight());
+        printf("\t\treco = %g\n", reco.total_symmetric_wrtR_weight());
+        printf("\t\treco_unmatched = %g\n", reco_unmatched.total_symmetric_wrtR_weight());
+        printf("\tsymmetric_wrtr: %s\n", pass_symmetric_wrtr ? "true" : "false");
+        printf("\t\ttotal_transfered = %g\n", sum_over_gen.total_symmetric_wrtr_weight());
+        printf("\t\tuntransferred_reco = %g\n", untransferred_reco.total_symmetric_wrtr_weight());
+        printf("\t\treco = %g\n", reco.total_symmetric_wrtr_weight());
+        printf("\t\treco_unmatched = %g\n", reco_unmatched.total_symmetric_wrtr_weight());
+    }
 }
 
 template <template <typename CONTAINER> typename RESULT_T, typename CALCULATOR>
