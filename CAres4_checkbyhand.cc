@@ -45,6 +45,7 @@ int main(){
     printf("\n");
     printf("\n");
 
+    jetFactory.initialize();
     simon::jet J_gen;
     jetFactory.makeJet(J_gen, NPART);
 
@@ -66,4 +67,19 @@ int main(){
             J_gen, J_reco, tmat,
             gen, unmatched_gen, transfer);
 
+    printf("total weight gen:\n");
+    printf("\tchain: %g\n", gen.total_chain_weight());
+    printf("\tsymmetric_wrtR : %g\n", gen.total_symmetric_wrtR_weight());
+    printf("\tsymmetric_wrtr : %g\n", gen.total_symmetric_wrtr_weight());
+    printf("total weight gen_unmatched\n");
+    printf("\tchain: %g\n", unmatched_gen.total_chain_weight());
+    printf("\tsymmetric_wrtR : %g\n", unmatched_gen.total_symmetric_wrtR_weight());
+    printf("\tsymmetric_wrtr : %g\n", unmatched_gen.total_symmetric_wrtr_weight());
+    printf("total weight transfer\n");
+    printf("\tchain -> chain: %g\n", transfer.total_chain_weight_reco());
+    printf("\tchain -> symmetric_wrtR: %g\n", transfer.total_chain_to_symmetric_wrtR_weight_reco());
+    printf("\tchain -> symmetric_wrtr: %g\n", transfer.total_chain_to_symmetric_wrtr_weight_reco());
+    printf("\tsymmetric_wrtR -> chain: %g\n", transfer.total_symmetric_wrtR_to_chain_weight_reco());
+    printf("\tsymmetric_wrtR -> symmetric_wrtR: %g\n", transfer.total_symmetric_wrtR_weight_reco());
+    printf("\tsymmetric_wrtr -> symmetric_wrtr: %g\n", transfer.total_symmetric_wrtr_weight_reco());
 }

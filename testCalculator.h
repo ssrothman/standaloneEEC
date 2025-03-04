@@ -18,9 +18,9 @@
 #include "SRothman/EECs/src/CARes4Calculator.h"
 
 #ifndef CHECK_BY_HAND
-constexpr int NPART = 60;
+constexpr int NPART = 10;
 #else
-constexpr int NPART = 15;
+constexpr int NPART = 50;
 #endif
 
 constexpr int NITER = 10;
@@ -152,6 +152,8 @@ void check_sum_transfer(const CALCULATOR& calculator,
         );
     }
 
+    printf("total transfer chain: %g\n", tresult.total_chain_weight_reco());
+
     auto sum_over_gen = tresult.get_sum_over_gen();
     bool pass = sum_over_gen + untransferred_reco == reco - reco_unmatched;
     printf("sum_over_gen + untransferred_reco == reco - reco_unmatched? %s\n", pass ? "true" : "false");
@@ -160,7 +162,9 @@ void check_sum_transfer(const CALCULATOR& calculator,
         bool pass_symmetric_wrtR = sum_over_gen.get_symmetric_wrtR() + untransferred_reco.get_symmetric_wrtR() == reco.get_symmetric_wrtR() - reco_unmatched.get_symmetric_wrtR();
         bool pass_symmetric_wrtr = sum_over_gen.get_symmetric_wrtr() + untransferred_reco.get_symmetric_wrtr() == reco.get_symmetric_wrtr() - reco_unmatched.get_symmetric_wrtr();
         printf("\tchain: %s\n", pass_chain ? "true" : "false");
-        printf("\t\ttotal_transfered = %g\n", sum_over_gen.total_chain_weight());
+        printf("\t\ttotal_sum_over_gen = %g\n", sum_over_gen.total_chain_weight());
+        printf("\t\ttotal_chain_to_chain = %g\n", tresult.total_chain_weight_reco());
+        printf("\t\ttotal_symmetric_wrtR_to_chain = %g\n", tresult.total_symmetric_wrtR_to_chain_weight_reco());
         printf("\t\tuntransferred_reco = %g\n", untransferred_reco.total_chain_weight());
         printf("\t\treco = %g\n", reco.total_chain_weight());
         printf("\t\treco_unmatched = %g\n", reco_unmatched.total_chain_weight());

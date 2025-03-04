@@ -40,6 +40,7 @@ int main(){
     printf("\n");
     printf("\n");
 
+    jetFactory.initialize();
     simon::jet J_gen;
     jetFactory.makeJet(J_gen, NPART);
 

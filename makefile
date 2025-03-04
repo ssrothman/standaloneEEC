@@ -67,7 +67,7 @@ bin/CAres4_benchmark: CAres4_benchmark.cc $(ALLLIBS) testCalculator.h
 	g++ CAres4_benchmark.cc $(ALLLIBS) -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
 
 bin/CAres4_unittest: CAres4_unittest.cc $(ALLLIBS) testCalculator.h
-	g++ CAres4_unittest.cc $(ALLLIBS) -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
+	g++ CAres4_unittest.cc $(ALLLIBS) -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS) 
 
 bin/CAres4_checkbyhand: CAres4_checkbyhand.cc $(ALLLIBS_BYHAND) testCalculator.h
 	g++ CAres4_checkbyhand.cc $(ALLLIBS_BYHAND) -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS) -DCHECK_BY_HAND
