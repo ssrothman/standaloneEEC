@@ -17,10 +17,10 @@
 #include "SRothman/EECs/src/CARes3Calculator.h"
 #include "SRothman/EECs/src/CARes4Calculator.h"
 
-#ifndef CHECK_BY_HAND
+#ifdef CHECK_BY_HAND
 constexpr int NPART = 10;
 #else
-constexpr int NPART = 50;
+constexpr int NPART = 70;
 #endif
 
 constexpr int NITER = 10;
@@ -152,11 +152,19 @@ void check_sum_transfer(const CALCULATOR& calculator,
         );
     }
 
-    printf("total transfer chain: %g\n", tresult.total_chain_weight_reco());
-
     auto sum_over_gen = tresult.get_sum_over_gen();
-    bool pass = sum_over_gen + untransferred_reco == reco - reco_unmatched;
-    printf("sum_over_gen + untransferred_reco == reco - reco_unmatched? %s\n", pass ? "true" : "false");
+    auto RHS = reco - reco_unmatched;
+    RHS-= untransferred_reco;
+    bool pass = sum_over_gen == RHS;
+
+    printf("sum_over_gen == reco - reco_unmatched - untransfered_reco? %s\n", pass ? "true" : "false");
+
+    auto sum_over_reco = tresult.get_sum_over_reco();
+    auto RHS2 = gen - unmatched_gen;
+    RHS2-= untransferred_gen;
+    bool pass2 = sum_over_reco == RHS2;
+    printf("sum_over_reco == gen - unmatched_gen - untransfered_gen? %s\n", pass2 ? "true" : "false");
+
     if constexpr(std::is_same_v<CALCULATOR, EEC::CARes4Calculator>){
         bool pass_chain = sum_over_gen.get_chain() + untransferred_reco.get_chain() == reco.get_chain() - reco_unmatched.get_chain();
         bool pass_symmetric_wrtR = sum_over_gen.get_symmetric_wrtR() + untransferred_reco.get_symmetric_wrtR() == reco.get_symmetric_wrtR() - reco_unmatched.get_symmetric_wrtR();
@@ -207,8 +215,8 @@ void checkAllSame(const CALCULATOR& calculator, JetFactory& jetFactory){
     calculator.compute_JIT(J, result_arr_JIT);
     calculator.compute_precomputed(J, result_arr_precomputed);
 
-    printf("vec == vec_precomputd? %s\n", result_vec_JIT == result_vec_precomputed ? "true" : "false");
-    printf("arr == arr_precomputd? %s\n", result_arr_JIT == result_arr_precomputed ? "true" : "false");
+    printf("vec == vec_precomputed? %s\n", result_vec_JIT == result_vec_precomputed ? "true" : "false");
+    printf("arr == arr_precomputed? %s\n", result_arr_JIT == result_arr_precomputed ? "true" : "false");
     printf("vec == arr? %s\n", result_vec_JIT == result_arr_JIT ? "true" : "false");
 }
 
@@ -260,8 +268,8 @@ void checkAllSame_matched(const CALCULATOR& calculator, JetFactory& jetFactory){
     bool same = result_vec_JIT == result_arr_JIT;
     same &= unmatched_vec_JIT == unmatched_arr_JIT;
 
-    printf("vec == vec_precomputd? %s\n", same_vec ? "true" : "false");
-    printf("arr == arr_precomputd? %s\n", same_arr ? "true" : "false");
+    printf("vec == vec_precomputed? %s\n", same_vec ? "true" : "false");
+    printf("arr == arr_precomputed? %s\n", same_arr ? "true" : "false");
     printf("vec == arr? %s\n", same ? "true" : "false");
 }
 
@@ -402,8 +410,8 @@ void checkAllSame_transfer(const CALCULATOR& calculator,
         same &= ut_reco_vec_JIT == ut_reco_arr_JIT;
         same &= ut_gen_vec_JIT == ut_gen_arr_JIT;
 
-        printf("vec == vec_precomputd? %s\n", same_vec ? "true" : "false");
-        printf("arr == arr_precomputd? %s\n", same_arr ? "true" : "false");
+        printf("vec == vec_precomputed? %s\n", same_vec ? "true" : "false");
+        printf("arr == arr_precomputed? %s\n", same_arr ? "true" : "false");
         printf("vec == arr? %s\n", same ? "true" : "false");
     } else {
         calculator.compute_JIT(
@@ -446,8 +454,8 @@ void checkAllSame_transfer(const CALCULATOR& calculator,
         same &= unmatched_vec_JIT == unmatched_arr_JIT;
         same &= tresult_vec_JIT == tresult_arr_JIT;
 
-        printf("vec == vec_precomputd? %s\n", same_vec ? "true" : "false");
-        printf("arr == arr_precomputd? %s\n", same_arr ? "true" : "false");
+        printf("vec == vec_precomputed? %s\n", same_vec ? "true" : "false");
+        printf("arr == arr_precomputed? %s\n", same_arr ? "true" : "false");
         printf("vec == arr? %s\n", same ? "true" : "false");
     }
 

@@ -1,7 +1,7 @@
 #include "SRothman/SimonTools/src/JetFactory.h"
 #include "SRothman/SimonTools/src/jet.h"
 #include "SRothman/EECs/src/usings.h"
-#include "SRothman/EECs/src/Res4Calculator.cc"
+#include "SRothman/EECs/src/Res4Calculator.h"
 
 #include <stdio.h>
 
@@ -56,7 +56,7 @@ int main(){
                           true>(
             tcalculator, jetFactory
     );
-    check_sum_transfer<EEC::Res4Result_MultiArray, 
+    check_sum_transfer<EEC::Res4Result_Vector, 
                        EEC::Res4TransferResult_Vector, 
                        true>(
             calculator, tcalculator, jetFactory
