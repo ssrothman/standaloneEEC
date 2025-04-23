@@ -195,11 +195,11 @@ void checkAllSame(const CALCULATOR& calculator, JetFactory& jetFactory){
     simon::jet J;
     jetFactory.makeJet(J, NPART);
 
-    RESULT_T<EEC::ResVectorContainer> result_vec_JIT(
+    RESULT_T<EEC::ResVectorContainer<unsigned>> result_vec_JIT(
         calculator
     );
 
-    RESULT_T<EEC::ResVectorContainer> result_vec_precomputed(
+    RESULT_T<EEC::ResVectorContainer<unsigned>> result_vec_precomputed(
         calculator
     );
 
@@ -210,14 +210,46 @@ void checkAllSame(const CALCULATOR& calculator, JetFactory& jetFactory){
         calculator
     );
 
+
+    RESULT_T<EEC::ResVectorContainer<double>> result_unbinned_JIT(
+        calculator
+    );
+    RESULT_T<EEC::ResVectorContainer<double>> result_unbinned_precomputed(
+        calculator
+    );
+
     calculator.compute_JIT(J, result_vec_JIT);
     calculator.compute_precomputed(J, result_vec_precomputed);
     calculator.compute_JIT(J, result_arr_JIT);
     calculator.compute_precomputed(J, result_arr_precomputed);
+    calculator.compute_JIT(J, result_unbinned_JIT);
+    calculator.compute_precomputed(J, result_unbinned_precomputed);
 
     printf("vec == vec_precomputed? %s\n", result_vec_JIT == result_vec_precomputed ? "true" : "false");
     printf("arr == arr_precomputed? %s\n", result_arr_JIT == result_arr_precomputed ? "true" : "false");
     printf("vec == arr? %s\n", result_vec_JIT == result_arr_JIT ? "true" : "false");
+
+    double JIT_total_tee = result_unbinned_JIT.total_tee_weight();
+    double JIT_total_dipole = result_unbinned_JIT.total_dipole_weight();
+    double JIT_total_triangle = result_unbinned_JIT.total_triangle_weight();
+
+    double precomputed_total_tee = result_unbinned_precomputed.total_tee_weight();
+    double precomputed_total_dipole = result_unbinned_precomputed.total_dipole_weight();
+    double precomputed_total_triangle = result_unbinned_precomputed.total_triangle_weight();
+
+    double reference_total_tee = result_vec_JIT.total_tee_weight();
+    double reference_total_dipole = result_vec_JIT.total_dipole_weight();
+    double reference_total_triangle = result_vec_JIT.total_triangle_weight();
+
+    bool pass1 = JIT_total_tee == precomputed_total_tee;
+    pass1 &= JIT_total_dipole == precomputed_total_dipole;
+    pass1 &= JIT_total_triangle == precomputed_total_triangle;
+    printf("unbinned_JIT.sum() == unbinned_precomputed.sum()? %s\n", pass1 ? "true" : "false");
+
+    bool pass2 = JIT_total_tee == reference_total_tee;
+    pass2 &= JIT_total_dipole == reference_total_dipole;
+    pass2 &= JIT_total_triangle == reference_total_triangle;
+    printf("unbinned_JIT.sum() == vec_JIT.sum()? %s\n", pass2 ? "true" : "false");
 }
 
 template <template <typename CONTAINER> typename RESULT_T, typename CALCULATOR>
@@ -229,16 +261,16 @@ void checkAllSame_matched(const CALCULATOR& calculator, JetFactory& jetFactory){
     jetFactory.makeMatchedVec(J, matched, 0.5);
 
 
-    RESULT_T<EEC::ResVectorContainer> result_vec_JIT(
+    RESULT_T<EEC::ResVectorContainer<unsigned>> result_vec_JIT(
         calculator
     );
-    RESULT_T<EEC::ResVectorContainer> unmatched_vec_JIT(
+    RESULT_T<EEC::ResVectorContainer<unsigned>> unmatched_vec_JIT(
         calculator
     );
-    RESULT_T<EEC::ResVectorContainer> result_vec_precomputed(
+    RESULT_T<EEC::ResVectorContainer<unsigned>> result_vec_precomputed(
         calculator
     );
-    RESULT_T<EEC::ResVectorContainer> unmatched_vec_precomputed(
+    RESULT_T<EEC::ResVectorContainer<unsigned>> unmatched_vec_precomputed(
         calculator
     );
     RESULT_T<EEC::ResMultiArrayContainer> result_arr_JIT(
@@ -287,23 +319,23 @@ void checkAllSame_transfer(const CALCULATOR& calculator,
     Eigen::MatrixXd tmat;
     jetFactory.makeTransferJet(J_gen, J_reco, tmat);
 
-    RESULT_T<EEC::ResVectorContainer> result_vec_JIT(
+    RESULT_T<EEC::ResVectorContainer<unsigned>> result_vec_JIT(
         calculator.get_axes_gen()
     );
-    RESULT_T<EEC::ResVectorContainer> unmatched_vec_JIT(
+    RESULT_T<EEC::ResVectorContainer<unsigned>> unmatched_vec_JIT(
         calculator.get_axes_gen()
     );
-    TRESULT_T<EEC::ResTransferVectorContainer> tresult_vec_JIT(
+    TRESULT_T<EEC::ResTransferVectorContainer<unsigned>> tresult_vec_JIT(
         calculator
     );
 
-    RESULT_T<EEC::ResVectorContainer> result_vec_precomputed(
+    RESULT_T<EEC::ResVectorContainer<unsigned>> result_vec_precomputed(
         calculator.get_axes_gen()
     );
-    RESULT_T<EEC::ResVectorContainer> unmatched_vec_precomputed(
+    RESULT_T<EEC::ResVectorContainer<unsigned>> unmatched_vec_precomputed(
         calculator.get_axes_gen()
     );
-    TRESULT_T<EEC::ResTransferVectorContainer> tresult_vec_precomputed(
+    TRESULT_T<EEC::ResTransferVectorContainer<unsigned>> tresult_vec_precomputed(
         calculator
     );
 
@@ -328,17 +360,17 @@ void checkAllSame_transfer(const CALCULATOR& calculator,
     );
 
     if constexpr (has_untransferred){
-        RESULT_T<EEC::ResVectorContainer> ut_reco_vec_JIT(
+        RESULT_T<EEC::ResVectorContainer<unsigned>> ut_reco_vec_JIT(
             calculator.get_axes_reco()
         );
-        RESULT_T<EEC::ResVectorContainer> ut_gen_vec_JIT(
+        RESULT_T<EEC::ResVectorContainer<unsigned>> ut_gen_vec_JIT(
             calculator.get_axes_gen()
         );
 
-        RESULT_T<EEC::ResVectorContainer> ut_reco_vec_precomputed(
+        RESULT_T<EEC::ResVectorContainer<unsigned>> ut_reco_vec_precomputed(
             calculator.get_axes_reco()
         );
-        RESULT_T<EEC::ResVectorContainer> ut_gen_vec_precomputed(
+        RESULT_T<EEC::ResVectorContainer<unsigned>> ut_gen_vec_precomputed(
             calculator.get_axes_gen()
         );
 
