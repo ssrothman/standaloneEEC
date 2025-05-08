@@ -92,3 +92,6 @@ bin/CAres3_checkbyhand: CAres3_checkbyhand.cc $(ALLLIBS_BYHAND) testCalculator.h
 
 bin/test_matching_v2: test_matching_v2.cc $(ALLLIBS)
 	g++ test_matching_v2.cc $(ALLLIBS) -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
+
+bin/testshower: testshower.cc $(ALLLIBS)
+	g++ testshower.cc $(ALLLIBS) -o $@ $(INCLUDES) $(CXXFLAGS) $(WARNINGFLAGS) $(LIBS)
