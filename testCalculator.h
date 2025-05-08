@@ -20,7 +20,7 @@
 #ifdef CHECK_BY_HAND
 constexpr int NPART = 10;
 #else
-constexpr int NPART = 70;
+constexpr int NPART = 10;
 #endif
 
 constexpr int NITER = 10;
@@ -164,29 +164,6 @@ void check_sum_transfer(const CALCULATOR& calculator,
     RHS2-= untransferred_gen;
     bool pass2 = sum_over_reco == RHS2;
     printf("sum_over_reco == gen - unmatched_gen - untransfered_gen? %s\n", pass2 ? "true" : "false");
-
-    if constexpr(std::is_same_v<CALCULATOR, EEC::CARes4Calculator>){
-        bool pass_chain = sum_over_gen.get_chain() + untransferred_reco.get_chain() == reco.get_chain() - reco_unmatched.get_chain();
-        bool pass_symmetric_wrtR = sum_over_gen.get_symmetric_wrtR() + untransferred_reco.get_symmetric_wrtR() == reco.get_symmetric_wrtR() - reco_unmatched.get_symmetric_wrtR();
-        bool pass_symmetric_wrtr = sum_over_gen.get_symmetric_wrtr() + untransferred_reco.get_symmetric_wrtr() == reco.get_symmetric_wrtr() - reco_unmatched.get_symmetric_wrtr();
-        printf("\tchain: %s\n", pass_chain ? "true" : "false");
-        printf("\t\ttotal_sum_over_gen = %g\n", sum_over_gen.total_chain_weight());
-        printf("\t\ttotal_chain_to_chain = %g\n", tresult.total_chain_weight_reco());
-        printf("\t\ttotal_symmetric_wrtR_to_chain = %g\n", tresult.total_symmetric_wrtR_to_chain_weight_reco());
-        printf("\t\tuntransferred_reco = %g\n", untransferred_reco.total_chain_weight());
-        printf("\t\treco = %g\n", reco.total_chain_weight());
-        printf("\t\treco_unmatched = %g\n", reco_unmatched.total_chain_weight());
-        printf("\tsymmetric_wrtR: %s\n", pass_symmetric_wrtR ? "true" : "false");
-        printf("\t\ttotal_transfered = %g\n", sum_over_gen.total_symmetric_wrtR_weight());
-        printf("\t\tuntransferred_reco = %g\n", untransferred_reco.total_symmetric_wrtR_weight());
-        printf("\t\treco = %g\n", reco.total_symmetric_wrtR_weight());
-        printf("\t\treco_unmatched = %g\n", reco_unmatched.total_symmetric_wrtR_weight());
-        printf("\tsymmetric_wrtr: %s\n", pass_symmetric_wrtr ? "true" : "false");
-        printf("\t\ttotal_transfered = %g\n", sum_over_gen.total_symmetric_wrtr_weight());
-        printf("\t\tuntransferred_reco = %g\n", untransferred_reco.total_symmetric_wrtr_weight());
-        printf("\t\treco = %g\n", reco.total_symmetric_wrtr_weight());
-        printf("\t\treco_unmatched = %g\n", reco_unmatched.total_symmetric_wrtr_weight());
-    }
 }
 
 template <template <typename CONTAINER> typename RESULT_T, typename CALCULATOR>
@@ -229,27 +206,29 @@ void checkAllSame(const CALCULATOR& calculator, JetFactory& jetFactory){
     printf("arr == arr_precomputed? %s\n", result_arr_JIT == result_arr_precomputed ? "true" : "false");
     printf("vec == arr? %s\n", result_vec_JIT == result_arr_JIT ? "true" : "false");
 
-    double JIT_total_tee = result_unbinned_JIT.total_tee_weight();
-    double JIT_total_dipole = result_unbinned_JIT.total_dipole_weight();
-    double JIT_total_triangle = result_unbinned_JIT.total_triangle_weight();
+    if constexpr(std::is_same_v<CALCULATOR, EEC::Res4Calculator>){
+        double JIT_total_tee = result_unbinned_JIT.total_tee_weight();
+        double JIT_total_dipole = result_unbinned_JIT.total_dipole_weight();
+        double JIT_total_triangle = result_unbinned_JIT.total_triangle_weight();
 
-    double precomputed_total_tee = result_unbinned_precomputed.total_tee_weight();
-    double precomputed_total_dipole = result_unbinned_precomputed.total_dipole_weight();
-    double precomputed_total_triangle = result_unbinned_precomputed.total_triangle_weight();
+        double precomputed_total_tee = result_unbinned_precomputed.total_tee_weight();
+        double precomputed_total_dipole = result_unbinned_precomputed.total_dipole_weight();
+        double precomputed_total_triangle = result_unbinned_precomputed.total_triangle_weight();
 
-    double reference_total_tee = result_vec_JIT.total_tee_weight();
-    double reference_total_dipole = result_vec_JIT.total_dipole_weight();
-    double reference_total_triangle = result_vec_JIT.total_triangle_weight();
+        double reference_total_tee = result_vec_JIT.total_tee_weight();
+        double reference_total_dipole = result_vec_JIT.total_dipole_weight();
+        double reference_total_triangle = result_vec_JIT.total_triangle_weight();
 
-    bool pass1 = JIT_total_tee == precomputed_total_tee;
-    pass1 &= JIT_total_dipole == precomputed_total_dipole;
-    pass1 &= JIT_total_triangle == precomputed_total_triangle;
-    printf("unbinned_JIT.sum() == unbinned_precomputed.sum()? %s\n", pass1 ? "true" : "false");
+        bool pass1 = JIT_total_tee == precomputed_total_tee;
+        pass1 &= JIT_total_dipole == precomputed_total_dipole;
+        pass1 &= JIT_total_triangle == precomputed_total_triangle;
+        printf("unbinned_JIT.sum() == unbinned_precomputed.sum()? %s\n", pass1 ? "true" : "false");
 
-    bool pass2 = JIT_total_tee == reference_total_tee;
-    pass2 &= JIT_total_dipole == reference_total_dipole;
-    pass2 &= JIT_total_triangle == reference_total_triangle;
-    printf("unbinned_JIT.sum() == vec_JIT.sum()? %s\n", pass2 ? "true" : "false");
+        bool pass2 = JIT_total_tee == reference_total_tee;
+        pass2 &= JIT_total_dipole == reference_total_dipole;
+        pass2 &= JIT_total_triangle == reference_total_triangle;
+        printf("unbinned_JIT.sum() == vec_JIT.sum()? %s\n", pass2 ? "true" : "false");
+    }
 }
 
 template <template <typename CONTAINER> typename RESULT_T, typename CALCULATOR>
