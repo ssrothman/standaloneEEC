@@ -9,7 +9,7 @@
 #include "SRothman/EECs/src/CARes4Result.h"
 #include "SRothman/EECs/src/CARes4TransferResult.h"
 
-#include "testCalculator.h"
+#include "testResCalculator.h"
 
 int main(){
     JetFactory jetFactory;

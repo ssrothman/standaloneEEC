@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 
-#include "testCalculator.h"
+#include "testResCalculator.h"
 
 int main(){
     JetFactory jetFactory;

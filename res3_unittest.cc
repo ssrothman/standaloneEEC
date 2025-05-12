@@ -1,11 +1,11 @@
 #include "SRothman/SimonTools/src/JetFactory.h"
 #include "SRothman/SimonTools/src/jet.h"
 #include "SRothman/EECs/src/usings.h"
-#include "SRothman/EECs/src/Res3Calculator.cc"
+#include "SRothman/EECs/src/Res3Calculator.h"
 
 #include <stdio.h>
 
-#include "testCalculator.h"
+#include "testResCalculator.h"
 
 int main(){
     JetFactory jetFactory;

@@ -9,7 +9,7 @@
 #include "SRothman/EECs/src/Res3Result.h"
 #include "SRothman/EECs/src/Res3TransferResult.h"
 
-#include "testCalculator.h"
+#include "testResCalculator.h"
 
 int main(){
     JetFactory jetFactory;
