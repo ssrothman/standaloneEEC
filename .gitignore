@@ -3,3 +3,5 @@ bin/*
 lib/*
 callgrind.out.*
 massif.out.*
+*.o
+*.pyc
