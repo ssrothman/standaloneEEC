@@ -1,6 +1,10 @@
 __pycache__/*
 bin/*
 lib/*
+build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
 callgrind.out.*
 massif.out.*
 *.o
